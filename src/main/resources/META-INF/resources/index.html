@@ -1,0 +1,390 @@
+<!--
+  ~ Copyright 2020 Red Hat, Inc. and/or its affiliates.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<html lang="en">
+
+<head>
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <title>School timetabling - OptaPlanner Quarkus</title>
+    <link rel="icon" href="overviewImages/logoJette.png" type="image/icon type" />
+    <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="/webjars/font-awesome/css/all.css" />
+    <link rel="stylesheet" href= "/webjars/jquery-ui/jquery-ui.css" />
+    <link rel="stylesheet" href= "/webjars/jquery-ui/jquery-ui.structure.css" />
+    <link rel="stylesheet" href= "/webjars/jquery-ui/jquery-ui.theme.css" />
+    <style>
+  </style>
+<!--    <link rel="stylesheet" href="/jquery.gridstrap.min.css" />-->
+</head>
+
+<body>
+<!--    <h1>Welcome to jQuery UI!</h1>
+    <div>
+        <div class="card" style="background-color: aqua">
+            <div class="card-body p-2">
+                <h5 class="card-title mb-1"> CARD </h5>
+                <p class="card-text ml-2 mb-1"> HELLO </p>
+            </div>
+        </div>
+        <div class="card" style="background-color: aqua">
+            <div class="card-body p-2">
+                <h5 class="card-title mb-1"> CARD2 </h5>
+                <p class="card-text ml-2 mb-1"> HELLO </p>
+            </div>
+        </div>
+    </div>-->
+
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <a class="navbar-brand" href="https://www.optaplanner.org">
+                <img src="optaPlannerLogo200px.png" alt="OptaPlanner logo">
+            </a>
+        </nav>
+        <div class="sticky-top d-flex justify-content-center align-items-center" aria-live="polite" aria-atomic="true">
+            <div id="notificationPanel" style="position: absolute; top: .5rem;"></div>
+        </div>
+        <h1>High school time table solver</h1>
+        <p>Generate -hopefully- the optimal schedule for your teachers and students.</p>
+
+        <div style="margin-bottom: .5rem">
+
+            <!--SOLVING BUTTONS -->
+            <button id="refreshButton" type="button" class="btn btn-secondary">
+                <span class="fas fa-refresh"></span> Refresh
+            </button>
+            <button id="solveButton" type="button" class="btn btn-success">
+                <span class="fas fa-play"></span> Solve
+            </button>
+            <button id="stopSolvingButton" type="button" class="btn btn-danger">
+                <span class="fas fa-stop"></span> Stop solving
+            </button>
+            <span id="score" class="score ml-2 align-middle font-weight-bold">Score: ?</span>
+
+            <!--CONFIGURATION TABLE -->
+            <div class="float-right">
+                <ul class="nav nav-pills" id="myTab" role="tablist">
+                    <li class="nav-item">
+                        <a class="nav-link" id="byStudentGroupTab" data-toggle="tab" href="#byStudentGroup" role="tab" aria-controls="byStudentGroup" aria-selected="true">By student group</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="byTeacherTab" data-toggle="tab" href="#byTeacher" role="tab" aria-controls="byTeacher" aria-selected="false">By teacher</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" id="byRoomTab" data-toggle="tab" href="#byRoomPanel" role="tab" aria-controls="byRoomPanel" aria-selected="false">By room</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!--OVERVIEW TABLE -->
+        <div class="tab-content" id="myTabContent">
+            <div class="tab-pane fade" id="byStudentGroup" role="tabpanel" aria-labelledby="byStudentGroupTab">
+                <table class="table table-bordered table-striped" id="timeTableByStudentGroup">
+                    <!-- Filled in by app.js -->
+                </table>
+            </div>
+            <div class="tab-pane fade" id="byTeacher" role="tabpanel" aria-labelledby="byTeacherTab">
+                <table class="table table-bordered table-striped" id="timeTableByTeacher">
+                    <!-- Filled in by app.js -->
+                </table>
+            </div>
+            <div class="tab-pane fade show active" id="byRoomPanel" role="tabpanel" aria-labelledby="byRoomTab">
+                <div class="table-responsive">
+                    <table class="table table-bordered table-striped" id="timeTableByRoom">
+                        <!-- Filled in by app.js -->
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!--BUTTONS FOR ADDING -->
+        <div>
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lessonDialog">
+                <span class="fas fa-plus"></span> Add lesson
+            </button>
+            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#timeslotDialog">
+                <span class="fas fa-plus"></span> Add timeslot
+            </button>
+            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#roomDialog">
+                <span class="fas fa-plus"></span> Add room
+            </button>
+            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#preferenceDialog">
+                <span class="fas fa-plus"></span> Add preference
+            </button>
+            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#infoDialog">
+                <span class="fas fa-plus"></span> Info?
+            </button>
+        </div>
+
+        <div>
+            <h2 style="margin-top: 2rem">Overview</h2>
+            <!--OVERVIEW TEACHERS PREFERENCES-->
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <a class = "navbar-brand" href = "/overview/preference.html" >
+                    <button type="button" class="btn btn-outline-info">
+                        Teachers preferences
+                    </button>
+                </a>
+                <a class = "navbar-brand" href = "/overview/teacher.html" >
+                    <button type="button" class="btn btn-outline-info">
+                        Teachers
+                    </button>
+                </a>
+            </nav>
+            <!--OVERVIEW TEACHERS PREFERENCES-->
+
+        </div>
+        <!--OVERVIEW UNASSIGNED LESSONS-->
+        <h2 style="margin-top: 2rem">Unassigned lessons</h2>
+        <div id="unassignedLessons" class="card-columns"></div>
+        <!--START-->
+<!--        <h2 style="margin-top: 2rem">TEST</h2>
+
+        <div class="row container d-flex justify-content-center">
+            <div class="col-sm-12">
+                     Draggable default card start
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Drag and drop cards</h5>
+                        </div>
+                        <div class="card-block">
+                            <div class="row" id="sortable">
+                                <div class="col-md-3" style="">
+                                    <div class="card-sub"> <img class="card-img-top img-fluid" src="https://i.imgur.com/QwIYa8y.jpg" alt="Card image cap">
+                                        <div class="card-block">
+                                            <h4 class="card-title">Product 1</h4>
+                                            <p class="card-text">For what reason would it be advisable for me to think about business content?</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3" style="">
+                                    <div class="card-sub"> <img class="card-img-top img-fluid" src="https://i.imgur.com/QwIYa8y.jpg" alt="Card image cap">
+                                        <div class="card-block">
+                                            <h4 class="card-title">Product 2</h4>
+                                            <p class="card-text">For what reason would it be advisable for me to think about business content.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3" draggable="false" style="">
+                                    <div class="card-sub"> <img class="card-img-top img-fluid" src="https://i.imgur.com/QwIYa8y.jpg" alt="Card image cap" draggable="false">
+                                        <div class="card-block">
+                                            <h4 class="card-title">Product 3</h4>
+                                            <p class="card-text">For what reason would it be advisable for me to think about business content</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-3" style="">
+                                    <div class="card-sub"> <img class="card-img-top img-fluid" src="https://i.imgur.com/IglVN9o.jpg" alt="Card image cap">
+                                        <div class="card-block">
+                                            <h4 class="card-title">Product 4</h4>
+                                            <p class="card-text">For what reason would it be advisable for me to think about business content</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+        </div>-->
+        <!--END-->
+    </div>
+
+
+<!--INFO -->
+    <div class="modal fade" id="infoDialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>View</h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="info_view">Choose/Enter timeslot</label>
+                        <select class="form-control" id="info_view">
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<!--ADD LESSON-->
+    <div class="modal fade" id="lessonDialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Add a lesson</h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body" >
+                    <div class="form-group">
+                        <label for="lesson_subject">Task number</label>
+                        <input type="number" class="form-control" id="lesson_taskNumber" required value="100">
+                    </div>
+                    <div class="form-group">
+                        <label for="lesson_subject">Number of courses</label>
+                        <input type="number" class="form-control" id="lesson_multiplicity" required value="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="lesson_subject">Subject</label>
+                        <input type="text" class="form-control" id="lesson_subject" required value="Music">
+                    </div>
+                    <div class = "form -group" id = "lesson_fields">
+                        <div class="form-group" >
+                            <label for="lesson_teachers">Taught by</label>
+                            <select multiple class="form-control" id="lesson_teachers" required>
+                                <!--Added by app.js -->
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="lesson_studentGroups">Student group(s)</label>
+                            <select multiple class="form-control" id="lesson_studentGroups" required>
+                                <!--Added by app.js -->
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="input-group input-group-sm mb-3" >
+                            <div class="input-group-prepend">
+                                <button class="btn btn-outline-secondary" id="addStudentGroupSubmitButton" type="button" >Add new group</button>
+                            </div>
+                            <input type="text" class="form-control" id="newStudentGroup" data-toggle="modal" data-target="#studentGroupDialog">
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="addLessonSubmitButton">Submit new lesson</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--ADD Timeslot-->
+    <div class="modal fade" id="timeslotDialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Add a timeslot</h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="timeslot_dayOfWeek">Day of week</label>
+                        <select class="form-control" id="timeslot_dayOfWeek" required>
+                            <option>Monday</option>
+                            <option>Tuesday</option>
+                            <option selected="selected">Wednesday</option>
+                            <option>Thursday</option>
+                            <option>Friday</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="timeslot_startTime">Start time</label>
+                        <input type="time" class="form-control" id="timeslot_startTime" required value="08:30" />
+                    </div>
+                    <div class="form-group">
+                        <label for="timeslot_endTime">End time</label>
+                        <input type="time" class="form-control" id="timeslot_endTime" required value="09:30">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="addTimeslotSubmitButton">Submit new timeslot</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--ADD ROOM-->
+    <div class="modal fade" id="roomDialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Add a room</h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="room_name">Name</label>
+                        <input type="text" class="form-control" id="room_name" required value="Room D">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="addRoomSubmitButton">Submit new room</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--ADD PREFERENCE-->
+    <div class="modal fade" id="preferenceDialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Preference</h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="form-group">
+                    <h6> Add a teacher and timeslot on which he/she prefers NOT to teach. </h6>
+                </div>
+                <div class="form-group">
+                    <label for="preference_teacher">Teacher</label>
+                    <input type="text" class="form-control" id="preference_teacher" required value="I. Jones">
+                </div>
+                <div class="form-group">
+                    <label for="preference_timeslot">Choose/Enter timeslot</label>
+                    <select class="form-control" id="preference_timeslot" required>
+                    </select>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="addPreferenceSubmitButton">Submit new preference</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+<!--    <script src="jqueryui/jquery-ui.js" type="text/Javascript"></script>
+    <script src="jqueryui/external/jquery/jquery.js" ></script>-->
+    <!--DO NOT DELETE COMMENTS -->
+    <script src="/webjars/jquery/jquery.js"></script>
+    <script src="/webjars/jquery-ui/jquery-ui.js"></script>
+    <script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/webjars/momentjs/min/moment.min.js"></script>
+    <script src="/app.js"></script>
+</body>
+
+</html>
