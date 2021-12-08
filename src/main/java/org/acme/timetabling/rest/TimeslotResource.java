@@ -1,5 +1,6 @@
 package org.acme.timetabling.rest;
 
+import io.quarkus.panache.common.Sort;
 import org.acme.timetabling.domain.Lesson;
 import org.acme.timetabling.domain.LessonTask;
 import org.acme.timetabling.domain.Timeslot;
@@ -9,6 +10,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.sql.Time;
+import java.util.List;
 import java.util.Optional;
 
 @Path("/timeslots")
@@ -28,6 +30,7 @@ public class TimeslotResource {
     @POST
     public Response add(Timeslot timeslot) {
         Timeslot.persist(timeslot);
+        updatePositions();
         return Response.accepted(timeslot).build();
     }
     @DELETE
@@ -38,6 +41,7 @@ public class TimeslotResource {
             return Response.status(Response.Status.NOT_FOUND).build();
         }
         timeslot.delete();
+        updatePositions();
         return Response.status(Response.Status.OK).build();
     }
     @GET
@@ -62,5 +66,20 @@ public class TimeslotResource {
         return Response.status(Response.Status.OK).build();
     }
 
+    @POST
+    @Path("updatePositions")
+    public static Response updatePositions(){
+        List<Timeslot> timeslotList = Timeslot.listAll(Sort.by("dayOfWeek").and("startTime").and("endTime"));
+        Integer order =0;
+        for (Timeslot timeslot: timeslotList) {
+            order++;
+            timeslot.setPosition(order);
+        }
+        return Response.status(Response.Status.OK).build();
+    }
+
+    public static Long numberOfTimeslots(){
+        return Timeslot.count();
+    }
 }
 

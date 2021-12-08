@@ -12,10 +12,19 @@ import javax.ws.rs.core.MediaType;
 
 import io.quarkus.panache.common.Sort;
 import org.acme.timetabling.domain.*;
+import org.acme.timetabling.rest.repository.LessonRepository;
+import org.acme.timetabling.rest.repository.LessonTaskRepository;
 import org.optaplanner.core.api.score.ScoreManager;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
+import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.api.solver.SolverManager;
 import org.optaplanner.core.api.solver.SolverStatus;
+import org.optaplanner.core.config.solver.SolverConfig;
+import org.optaplanner.core.config.solver.SolverManagerConfig;
+
+import java.io.File;
+import java.util.HashSet;
+import java.util.Set;
 
 @Path("/timeTable")
 @Produces(MediaType.APPLICATION_JSON)
@@ -23,9 +32,16 @@ import org.optaplanner.core.api.solver.SolverStatus;
 public class TimeTableResource {
 
     private static final Long SINGLETON_TIME_TABLE_ID = 1L;
+    private static String FILENAME = "/home/svs/IdeaProjects/school-timetabling/src/main/java/org/acme/timetabling/solver/timetablingSolverConfig.xml";
 
     @Inject
-    SolverManager<TimeTable, Long> solverManager;
+    LessonRepository lessonRepository;
+
+    /*@Inject
+    SolverManager<TimeTable, Long> solverManager;*/
+    File configSolverFile = new File(FILENAME);
+    SolverConfig solverConfig = SolverConfig.createFromXmlFile(configSolverFile);
+    SolverManager<TimeTable, Long> solverManager = SolverManager.create(solverConfig, new SolverManagerConfig());
 
     @Inject
     ScoreManager<TimeTable, HardSoftScore> scoreManager;
@@ -57,25 +73,31 @@ public class TimeTableResource {
         solverManager.terminateEarly(SINGLETON_TIME_TABLE_ID);
     }
 
+
     @Transactional
     protected TimeTable findById(Long id) {
         return new TimeTable(
-                Timeslot.listAll(),
+                Timeslot.listAll(Sort.by("position")),
                 Room.listAll(),
                 Lesson.listAll(),
                 LessonTask.listAll(),
                 StudentGroup.listAll(),
                 Teacher.listAll(),
-                //Necessary -> Optaplanner-uses it for constraints
                 Preference.listAll());
     }
 
     @Transactional
     protected void save(TimeTable timeTable) {
-        for (Lesson lesson: timeTable.getLessonList()) {
-            Lesson attachedLesson = Lesson.findById(lesson.getLessonId());
-            attachedLesson.setTimeslot(lesson.getTimeslot());
-            attachedLesson.setRoom(lesson.getRoom());
+        lessonRepository.deleteAllGroups();
+        Set<String> values = new HashSet<>();
+        for (LessonAssignment lessonAssignment: timeTable.getLessonAssignmentList()) {
+            Lesson attachedLesson = Lesson.findById(lessonAssignment.getLessonId());
+            values.add("("+ lessonAssignment.getTaskNumber().toString()+ ", '" + lessonAssignment.getStudentGroup().getGroupName()+"')");
+            attachedLesson.setTimeslot(lessonAssignment.getTimeslot());
+            attachedLesson.setRoom(lessonAssignment.getRoom());
         }
+        lessonRepository.addGroups(values);
     }
+
+
 }

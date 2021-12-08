@@ -18,13 +18,14 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 
 public class XmlDomParser {
 
     public static Function<String, List> main() {
 
-        String FILENAME = "C:/Users/simon/Desktop/Scheduling/FET/poging1.xml";
+        String FILENAME = "/home/svs/IdeaProjects/school-timetabling/data/extern/Poging1.xml";
 
         //Instantiate the Factory
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -33,6 +34,7 @@ public class XmlDomParser {
         List<StudentGroup> studentGroupList = new ArrayList<>();
         List<Room> roomList = new ArrayList<>();
         List<LessonTask>  lessonTaskList = new ArrayList<>();
+/*        List<LessonBlock> lessonBlockList = new ArrayList<>();*/
         List<Lesson> lessonList =new ArrayList<>();
         Function<String, List> giveList = null;
 
@@ -127,6 +129,13 @@ public class XmlDomParser {
                     }
                 }
             }
+//TESTING ORDERING OF TIMESLOTS DURING FETCHING
+/*            Timeslot toy1 = new Timeslot(DayOfWeek.WEDNESDAY,seventh.get(0), seventh.get(1));
+            Timeslot toy2 = new Timeslot(DayOfWeek.SATURDAY,seventh.get(0), seventh.get(1));
+            Timeslot toy3 = new Timeslot(DayOfWeek.WEDNESDAY,seventh.get(0), eighth.get(1));
+            timeslotList.add(toy1);
+            timeslotList.add(toy2);
+            timeslotList.add(toy3);*/
 
             //EXTRACT TEACHERNAMES FROM DOC
             NodeList teachersList = doc.getElementsByTagName("Teacher");
@@ -164,10 +173,12 @@ public class XmlDomParser {
 
                     Element element = (Element) node;
                     Node child = element.getElementsByTagName("Name").item(0);
+                    Node childNumb = element.getElementsByTagName("Number_of_Students").item(0);
                     if (child !=  null) {
                         String acronym = child.getTextContent();
                         //CREATE NEW STUDENTGROUP FROM DATA FILE
                         studentGroup = new StudentGroup(acronym);
+                        studentGroup.setNumberOfStudents(Integer.parseInt(childNumb.getTextContent()));
                         studentGroup.setYear(Integer.parseInt(acronym.substring(0,1)));
                         studentGroupList.add(studentGroup);
                     }
@@ -200,6 +211,7 @@ public class XmlDomParser {
 
             LessonTask lessonTask;
             Lesson lesson;
+/*            LessonBlock lessonBlock;*/
             List<String> versionB =new ArrayList<>();
             List<String> taskNumbList = new ArrayList<>();
             for (int index =0; index < LessonTaskList.getLength(); index ++) {
@@ -241,7 +253,7 @@ public class XmlDomParser {
                                     }
                                 }
                             }
-                            List<StudentGroup> stGroupList = studentGroupList.stream().filter(stgr ->studNames.contains(stgr.getGroupName())).toList();
+                            List<StudentGroup> stGroupList = studentGroupList.stream().filter(stgr ->studNames.contains(stgr.getGroupName())).collect(Collectors.toList());
                             // TEACHERS FOR LESSON
                             NodeList teachs = element.getElementsByTagName("Teacher");
                             List<String> teNames = new ArrayList<>();
@@ -253,7 +265,7 @@ public class XmlDomParser {
                                     }
                                 }
                             }
-                            List<Teacher> teList = teacherList.stream().filter(tea ->teNames.contains(tea.getAcronym())).toList();
+                            List<Teacher> teList = teacherList.stream().filter(tea ->teNames.contains(tea.getAcronym())).collect(Collectors.toList());
 
                             // SUBJECT FOR LESSON
                             Node subj = element.getElementsByTagName("Subject").item(0);
@@ -270,30 +282,25 @@ public class XmlDomParser {
                             }
 
                             //CREATE LESSONTASK
-                            List<LessonTask> copy= lessonTaskList.stream().filter(leta-> leta.getTaskNumber().equals(taskNumber)).toList();
+                            List<LessonTask> copy= lessonTaskList.stream().filter(leta-> leta.getTaskNumber().equals(taskNumber)).collect(Collectors.toList());
                             if (copy.isEmpty()) {
-                                lessonTask = new LessonTask(taskNumber);
+                                lessonTask = new LessonTask(taskNumber,subject, stGroupList, teList);
                                 lessonTaskList.add(lessonTask);
                             }
                             else {
                                 lessonTask = copy.get(0);
                             }
                             for (int k =0; k< multiplicity; k++){
-                                lesson = new Lesson(subject, teList, stGroupList);
-                                lesson.setLessonTask(lessonTask);
+                                lesson = new Lesson(lessonTask);
                                 lessonList.add(lesson);
+                                lessonTask.addLessonsToTaskList(lesson);
+                            }
+                            if (subject.equals("LO")){
+                                lessonTask.addCoupling(2);
                             }
                         }
 
                     }
-
-
-
-
-
-
-
-
 
 
                 }

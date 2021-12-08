@@ -1,5 +1,6 @@
 package org.acme.timetabling.domain;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
@@ -7,6 +8,7 @@ import org.optaplanner.core.api.domain.variable.PlanningVariable;
 import javax.persistence.*;
 
 @Entity
+@XStreamAlias("Preference")
 public class Preference extends PanacheEntityBase {
 
     @Id

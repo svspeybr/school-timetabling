@@ -1,21 +1,26 @@
 package org.acme.timetabling.domain;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+
 
 import java.time.DayOfWeek;
 import java.time.LocalTime;
-import java.util.List;
+import java.util.*;
 
 import javax.persistence.*;
 
 @Entity
-public class Timeslot extends PanacheEntityBase {
+@XStreamAlias("Timeslot")
+public class Timeslot extends PanacheEntityBase implements Comparable<Timeslot>{
 
+    private static final Comparator<Timeslot> COMPARATOR = Comparator.comparing(Timeslot::getPosition);
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long timeslotId;
 
+    private Integer position = 0;
     /*@ManyToMany(mappedBy = "preferences",
             fetch = FetchType.EAGER,
             cascade = CascadeType.PERSIST)
@@ -62,6 +67,10 @@ public class Timeslot extends PanacheEntityBase {
         return endTime;
     }
 
+    public Integer getPosition() {
+        return position;
+    }
+
     public void setDayOfWeek(DayOfWeek dayOfWeek) {
         this.dayOfWeek = dayOfWeek;
     }
@@ -72,6 +81,10 @@ public class Timeslot extends PanacheEntityBase {
 
     public void setEndTime(LocalTime endTime) {
         this.endTime = endTime;
+    }
+
+    public void setPosition(Integer position) {
+        this.position = position;
     }
 
     public Boolean isLastResort() {
@@ -104,4 +117,22 @@ public class Timeslot extends PanacheEntityBase {
                 (this.startTime.equals(timeslot.getEndTime()) ||
                         this.endTime.equals(timeslot.getStartTime()));
     }
+
+    public static Integer numberOfGapsInBetween(List<Timeslot> timeslotList) {
+        int length = timeslotList.size();
+        if (length <= 1) {
+            return 0;
+        }
+        Set<DayOfWeek> onDifferentDays = new HashSet<>(length);
+        timeslotList.forEach(timeslot -> onDifferentDays.add(timeslot.getDayOfWeek()));
+        Collections.sort(timeslotList);
+        return timeslotList.get(length - 1).getPosition() - timeslotList.get(0).getPosition()
+                + 1 - length + 8 * (onDifferentDays.size() - 1);
+
+    }
+    @Override
+    public int compareTo(Timeslot O) {
+        return COMPARATOR.compare(this, O);
+    }
+
 }

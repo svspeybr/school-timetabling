@@ -1,27 +1,30 @@
 package org.acme.timetabling.domain;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import org.hibernate.engine.internal.Cascade;
 
 import javax.persistence.*;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
-public class Teacher extends PanacheEntityBase {
+@XStreamAlias("Teacher")
+public class Teacher extends PanacheEntityBase implements Comparable<Teacher>{
+
+    private static final Comparator<Teacher> COMPARATOR = Comparator.comparing(Teacher::getAcronym);
 
     @Id
     private String acronym;
     private String name;
 
-    @ManyToMany(targetEntity = Lesson.class,
+    @ManyToMany(targetEntity = LessonTask.class,
             mappedBy = "taughtBy",
-            cascade = CascadeType.MERGE)
+            fetch = FetchType.EAGER)
     @JsonIgnore
-    private Set<Lesson> teachesLessons = new HashSet<>();
+    private Set<LessonTask> lessonTasks = new HashSet<>();
 
     @OneToMany(targetEntity = Preference.class,
             cascade = CascadeType.MERGE,
@@ -61,28 +64,18 @@ public class Teacher extends PanacheEntityBase {
         return preferenceList;
     }
 
-    public void addLessonToTeach(Lesson lesson) {
-        teachesLessons.add(lesson);
+    public void addLessonTask(LessonTask lessonTask) {
+        lessonTasks.add(lessonTask);
     }
 
-    public void removeLessonToTeach(Lesson lesson) {teachesLessons.remove(lesson);}
+    public void removeLessonTas(LessonTask lessonTask) {lessonTasks.remove(lessonTask);}
     /*Preferences ADD - DELETE */
-
-/*   public List<Timeslot> addPreference(Timeslot preference) {
-        List<Timeslot> newPreferences = new ArrayList<>(this.preferences);
-        newPreferences.add(preference);
-        return newPreferences;}*/
-
-/*    public void deletePreference(Timeslot preference) {
-        this.preferences.remove(preference);}*/
 
     public void setName(String name) {
         this.name = name;
     }
 
-/*    public void addPreference(Timeslot preference) {
-        this.preferences.add(preference);
-    }*/
+
 
 /*
     Searching with hibernate-panache
@@ -91,4 +84,8 @@ public class Teacher extends PanacheEntityBase {
     public static List<Teacher> findByAcronym(String acronym) {
        return find("acronym", acronym).list();
 }
+    @Override
+    public int compareTo(Teacher O) {
+        return COMPARATOR.compare(this, O);
+    }
 }

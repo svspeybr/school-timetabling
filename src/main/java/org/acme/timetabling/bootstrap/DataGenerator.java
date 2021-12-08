@@ -11,21 +11,52 @@ import org.acme.timetabling.domain.*;
 import org.acme.timetabling.parser.XmlDomParser;
 
 import io.quarkus.runtime.StartupEvent;
+import org.acme.timetabling.persistence.XmlDataGenerator;
+import org.acme.timetabling.rest.TimeslotResource;
 
 @ApplicationScoped
-public class DemoDataGenerator {
+public class DataGenerator {
 
 
     @Transactional
-    public void generateDemoData(@Observes StartupEvent startupEvent) {
+    public void generateData(@Observes StartupEvent startupEvent) {
+
+
 
         Function<String, List> giveList = XmlDomParser.main();
-        Timeslot.persist(giveList.apply("ti"));
+        //TIMESLOTS
+        Timeslot.persist( giveList.apply("ti"));
+        //ORDERING TIMESLOTS
+        TimeslotResource.updatePositions();
+
+        //TEACHERS
         Teacher.persist(giveList.apply("te"));
+        //ROOMS
         Room.persist(giveList.apply("ro"));
+
+        //STUDENTGROUPS
         StudentGroup.persist(giveList.apply("st"));
-        LessonTask.persist(giveList.apply("ta"));
-        Lesson.persist(giveList.apply("le"));
+        //LESSONTASKS
+        List<LessonTask> lessonTaskList = giveList.apply("ta");
+        LessonTask lessonTaskWGS = lessonTaskList.stream().filter(leta-> leta.getTaskNumber() == 970).findFirst().get();
+        lessonTaskWGS.addCoupling(2);
+        lessonTaskWGS.addCoupling(3);
+        LessonTask.persist(lessonTaskList);
+        //LESSONS
+        Lesson.persist( giveList.apply("le"));
+
+
+        //Configure Timetable for benchmark
+        /*XmlDataGenerator.main();*/
+
+        //DefaultSettings
+        DefaultSettings defaultSettings = new DefaultSettings();
+        //SET SCIENCE COURSES
+        defaultSettings.addScienceCourse("CH");
+        defaultSettings.addScienceCourse("FY");
+
+        //Configure solver
+
 /*
         List<Timeslot> timeslotList = new ArrayList<>();
         timeslotList.add(new Timeslot(DayOfWeek.MONDAY, LocalTime.of(8, 30), LocalTime.of(9, 30)));

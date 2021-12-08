@@ -1,5 +1,6 @@
 package org.acme.timetabling.domain;
 
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import org.optaplanner.core.api.domain.lookup.PlanningId;
 
@@ -10,6 +11,7 @@ import javax.persistence.Id;
 
 
 @Entity
+@XStreamAlias("Room")
 public class Room extends PanacheEntityBase {
 
     @Id

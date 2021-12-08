@@ -1,6 +1,11 @@
 package org.acme.timetabling.domain;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import org.hibernate.annotations.Fetch;
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.entity.PlanningPin;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
@@ -8,75 +13,50 @@ import org.optaplanner.core.api.domain.variable.PlanningVariable;
 import javax.persistence.*;
 import javax.transaction.Transactional;
 import java.util.*;
+import java.util.stream.Collectors;
 
 
-@PlanningEntity
+/*@PlanningEntity*/
+@XStreamAlias("Lesson")
 @Entity
-public class Lesson extends PanacheEntityBase {
-
+public class Lesson extends PanacheEntityBase{
     /* FIELDS*/
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(name = "LESSONID")
     private Long lessonId;
 
-    @ManyToMany(targetEntity = Teacher.class, fetch = FetchType.EAGER)
-    private Set<Teacher> taughtBy= new HashSet<>();
-    /*private String teacher;*/
-    private String subject;
     private boolean pinned = false;
-    private boolean coupled = false;
-
-    @ManyToMany(targetEntity = StudentGroup.class, fetch = FetchType.EAGER)
-    private Set<StudentGroup> studentGroups = new HashSet<>();
 
     //Initialized during planning
-    @PlanningVariable(valueRangeProviderRefs = "timeslotRange")
     @ManyToOne
     private Timeslot timeslot;
-    @PlanningVariable(valueRangeProviderRefs = "roomRange")
+
     @ManyToOne
     private Room room;
+
+    @Column(name = "TASKNUMBER")
+    private Integer taskNumber;
+
     @ManyToOne(targetEntity = LessonTask.class)
+    @JsonIdentityInfo(
+            generator = ObjectIdGenerators.PropertyGenerator.class,
+            property = "taskNumber")
+    @JoinColumn(name = "TASKNUMBER", insertable = false, updatable = false)
     private LessonTask lessonTask;
 
-/*    private List<Preference> getPreferences() {
-        return taughtBy.stream().flatMap(teacher -> teacher.getPreferenceList().stream()).toList();
-    }*/
     /*CONSTRUCTORS*/
 
     // No-arg constructor required for Hibernate and OptaPlanner
     public Lesson() {
     }
 
-    public Lesson(String subject, Teacher teacher, StudentGroup studentGroup) {
-        this.subject = subject;
-        addTeacher(teacher);
-        addStudentGroup(studentGroup);
+    public Lesson(LessonTask lessonTask){
+        this.lessonTask = lessonTask;
+        this.taskNumber = lessonTask.getTaskNumber();
     }
 
-    public Lesson(String subject, List<Teacher> teachers, List<StudentGroup> studentGroups) {
-        this.subject = subject;
-        addTeachers(teachers);
-        addStudentGroups(studentGroups);
-    }
-
-    public Lesson(String subject) {
-        this.subject = subject;
-    }
-
-/*    public List<Lesson> generateMultipleLessons(Integer multiplicity,
-                                                String subject,
-                                                Teacher teacher,
-                                                StudentGroup studentGroup) {
-        List<Lesson> lessonList = new ArrayList<>();
-        for (int i = 0; i < multiplicity; i++) {
-            Lesson lesson = new Lesson(subject, teacher, studentGroup);
-            lessonList.add(lesson);
-        }
-        return(lessonList);
-    }*/
     /*PINNED */
-    @PlanningPin
     public boolean isPinned() {
         return pinned;
     }
@@ -85,15 +65,63 @@ public class Lesson extends PanacheEntityBase {
         this.pinned = pinned;
     }
 
-    public void changeCoupled() {
-         coupled = ! coupled;
+    @Override
+    public String toString() {
+        return  lessonId.toString() ;
     }
-    /*Coupling*/
-    public boolean isCoupled() {
-        return coupled;
+
+    // ************************************************************************
+    // Getters and setters
+    // ************************************************************************
+
+    public Long getLessonId() {
+        return lessonId;
     }
-    public boolean isActivelyCoupled() {
-        return this.lessonTask.isCoupled();
+
+    public Timeslot getTimeslot() {
+        return timeslot;
+    }
+
+    public LessonTask getLessonTask() {
+        return lessonTask;
+    }
+
+    public Integer getTaskNumber() {return taskNumber;};
+
+    public String getSubject() {return lessonTask.getSubject();}
+
+    public Set<StudentGroup> getStudentGroups() {
+        return lessonTask.getStudentGroups();}
+
+    public Set<Teacher> getTaughtBy() {
+        return lessonTask.getTaughtBy();
+    }
+
+
+    public void setLessonTask(LessonTask lessonTask) {
+        if(this.lessonTask != null) {
+            this.lessonTask.deleteLessonsOfTaskList(this);
+        }
+        this.lessonTask = lessonTask;
+        this.taskNumber = lessonTask.getTaskNumber();
+        lessonTask.addLessonsToTaskList(this);
+    }
+
+    public void setTimeslot(Timeslot timeslot) {
+        this.timeslot = timeslot;
+    }
+
+    public Room getRoom() {
+        return room;
+    }
+
+    public void setRoom(Room room) {
+        this.room = room;
+    }
+
+
+    public Boolean isConsecutiveTo(Lesson lesson) {
+        return this.timeslot.isConsecutiveTo(lesson.getTimeslot());
     }
 
     // MORE EFFICIENT?????
@@ -108,167 +136,7 @@ public class Lesson extends PanacheEntityBase {
     public boolean accToLesSepCriteriaSPC () {
         long nlessons = this.nLesSameDaySameTask();
         return (nlessons < 3 & this.lessonTask.getMultiplicity() > 5) ||
-                  nlessons < 2 ;
-    }
-
-
-    /*Placed on last resort */
-    public Boolean isOnLastResortTimeslot() {
-        if (this.timeslot == null){
-            return false;
-        }
-        return this.timeslot.isLastResort();
-    }
-
-    @Override
-    public String toString() {
-        return subject + "(" + lessonId + ")";
-    }
-
-    // ************************************************************************
-    // Getters and setters
-    // ************************************************************************
-
-    public Long getLessonId() {
-        return lessonId;
-    }
-
-    public String getSubject() {
-        return subject;
-    }
-
-    public Set<Teacher> getTaughtBy() {
-        return taughtBy;
-    }
-
-
-    public Set<StudentGroup> getStudentGroups() {
-        return studentGroups;
-    }
-
-    public String getStudentGroupsNames() {
-        StringBuilder studentGroupNames = new StringBuilder();
-        for (StudentGroup studentGroup: this.studentGroups) {
-            studentGroupNames.append(", "+studentGroup.getGroupName());
-        }
-        /*if (!studentGroupNames.isEmpty()) {
-            studentGroupNames.delete(0,2);
-        }*/
-        return studentGroupNames.toString();
-    }
-
-    public Timeslot getTimeslot() {
-        return timeslot;
-    }
-
-    public LessonTask getLessonTask() {
-        return lessonTask;
-    }
-
-    public void setLessonTask(LessonTask lessonTask) {
-        if(this.lessonTask != null) {
-            this.lessonTask.deleteLessonsOfTaskList(this);
-        }
-        this.lessonTask = lessonTask;
-        lessonTask.addLessonsToTaskList(this);
-
-    }
-
-    public void addStudentGroup(StudentGroup studentGroup) {
-        if (!this.studentGroups.contains(studentGroup)) {
-            this.studentGroups.add(studentGroup);
-            studentGroup.addLessonToFollow(this);
-        }
-    }
-
-    public void addStudentGroups(Collection<StudentGroup> studentGroups) {
-        for (StudentGroup studentGroup: studentGroups) {
-            addStudentGroup(studentGroup);
-        }
-    }
-
-    public void addTeacher(Teacher teacher) {
-        if (!this.taughtBy.contains(teacher)) {
-            this.taughtBy.add(teacher);
-            teacher.addLessonToTeach(this);
-        }
-    }
-
-    public void addTeachers(Collection<Teacher> teachers) {
-        for (Teacher teacher: teachers) {
-            addTeacher(teacher);
-        }
-    }
-
-    public void updateTeacherFromLessonTask(Teacher oldTeacher, Teacher newTeacher){
-        //Update lessons linked to task
-        //update teachers linked to lessons
-        this.lessonTask.getLessonsOfTaskList().forEach(lesson ->
-                                                {lesson.removeTeacher(oldTeacher);
-                                                 lesson.addTeacher(newTeacher);
-                                                oldTeacher.removeLessonToTeach(lesson);
-        });
-
-    }
-
-    private void removeTeacher(Teacher teacher) {
-        if(this.taughtBy.contains(teacher)){
-            this.taughtBy.remove(teacher);
-        }
-    }
-
-
-
-    public Boolean isConsecutiveTo(Lesson lesson) {
-        return this.timeslot.isConsecutiveTo(lesson.getTimeslot());
-    }
-
-
-    /*    public boolean hasLargerId (Lesson lesson) {
-        return this.lessonId > lesson.getLessonId();
-    }*/
-    //setTimeSlot --> takes into account coupling --> WRONG METHOD ...
-    //The algorithm tries often to separate the coupling --> resulting in increase of NEGATIVE HARD SCORE
-   /* public void setTimeslot(Timeslot timeslot) {
-        if (this.lessonTask.isCoupled() && this.coupled) {
-            List<Lesson> lessonList = this.lessonTask.getLessonsOfTaskList().stream().filter(lesson -> lesson.isCoupled() && lesson.hasLargerId(this) ).toList();
-            //MAKING USE OF THE ORDER OF lessonsOfTaskList
-            if (! lessonList.isEmpty()) {
-            Lesson coupledLesson = lessonList.get(0);
-            //UPDATE ONLY SMALLEST TIMESLOT
-            this.timeslot = timeslot;
-            coupledLesson.setTimeslotUncoupled(timeslot.getNextSlot());
-        }
-        } else {
-            this.timeslot = timeslot;
-        }
-    }*/
-    /*    public void setTimeslotUncoupled(Timeslot timeslot) {
-
-        this.timeslot = timeslot;
-    }*/
-
-    public void setTimeslot(Timeslot timeslot) {
-        this.timeslot = timeslot;
-    }
-
-
-
-
-    public Room getRoom() {
-        return room;
-    }
-
-    public void setRoom(Room room) {
-        this.room = room;
-    }
-
-    public void setTaughtBy(Set<Teacher> teachers) {
-        this.taughtBy = teachers;
-    }
-
-    public void setSubject(String subject) {
-        this.subject = subject;
+                nlessons < 2 ;
     }
 
 }

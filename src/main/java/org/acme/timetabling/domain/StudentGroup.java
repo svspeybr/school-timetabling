@@ -1,23 +1,27 @@
 package org.acme.timetabling.domain;
 
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 
 import javax.persistence.*;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
-public class StudentGroup extends PanacheEntityBase {
+@XStreamAlias("StudentGroup")
+public class StudentGroup extends PanacheEntityBase implements Comparable<StudentGroup>{
 
+    private static final Comparator<StudentGroup> COMPARATOR = Comparator.comparing(StudentGroup::getGroupName);
     @Id
     private String groupName;
-    @ManyToMany(targetEntity = Lesson.class,
+
+    @ManyToMany(targetEntity = LessonTask.class,
             mappedBy = "studentGroups",
-            cascade = CascadeType.MERGE)
+            fetch = FetchType.EAGER)
     @JsonIgnore
-    private Set<Lesson> followsLessons = new HashSet<>();
+    private Set<LessonTask> lessonTasks = new HashSet<>();
 
     private Integer numberOfStudents;
 
@@ -34,12 +38,8 @@ public class StudentGroup extends PanacheEntityBase {
         this.numberOfStudents =numberOfStudents;
     }
 
-    public Set<Lesson> getFollowsLessons() {
-        return followsLessons;
-    }
-
-    public void addLessonToFollow(Lesson lesson) {
-        followsLessons.add(lesson);
+    public void addLessonTask(LessonTask lessonTask) {
+        lessonTasks.add(lessonTask);
     }
     public void setNumberOfStudents(Integer numberOfStudents) {
         this.numberOfStudents = numberOfStudents;
@@ -63,5 +63,23 @@ public class StudentGroup extends PanacheEntityBase {
 
     public static List<StudentGroup> findByGroupName(String groupName) {
         return find("groupName", groupName).list();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        StudentGroup that = (StudentGroup) o;
+        return getGroupName().equals(that.getGroupName());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(getGroupName());
+    }
+
+    @Override
+    public int compareTo(StudentGroup O) {
+        return COMPARATOR.compare(this, O);
     }
 }

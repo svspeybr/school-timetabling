@@ -19,7 +19,7 @@
 <head>
     <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
     <meta content="width=device-width, initial-scale=1" name="viewport">
-    <title>School timetabling - OptaPlanner Quarkus</title>
+    <title>Lessonrooster SPC- OptaPlanner Quarkus</title>
     <link rel="icon" href="overviewImages/logoJette.png" type="image/icon type" />
     <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css" />
     <link rel="stylesheet" href="/webjars/font-awesome/css/all.css" />
@@ -57,8 +57,8 @@
         <div class="sticky-top d-flex justify-content-center align-items-center" aria-live="polite" aria-atomic="true">
             <div id="notificationPanel" style="position: absolute; top: .5rem;"></div>
         </div>
-        <h1>High school time table solver</h1>
-        <p>Generate -hopefully- the optimal schedule for your teachers and students.</p>
+        <h1>Lessonrooster SPC - Optaplanner</h1>
+        <p>Genereert -hopelijk- het optimale uurrooster voor de collega's.</p>
 
         <div style="margin-bottom: .5rem">
 
@@ -67,10 +67,10 @@
                 <span class="fas fa-refresh"></span> Refresh
             </button>
             <button id="solveButton" type="button" class="btn btn-success">
-                <span class="fas fa-play"></span> Solve
+                <span class="fas fa-play"></span> Los op
             </button>
             <button id="stopSolvingButton" type="button" class="btn btn-danger">
-                <span class="fas fa-stop"></span> Stop solving
+                <span class="fas fa-stop"></span> Stop
             </button>
             <span id="score" class="score ml-2 align-middle font-weight-bold">Score: ?</span>
 
@@ -114,16 +114,16 @@
         <!--BUTTONS FOR ADDING -->
         <div>
             <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lessonDialog">
-                <span class="fas fa-plus"></span> Add lesson
+                <span class="fas fa-plus"></span> Nieuwe les
             </button>
             <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#timeslotDialog">
-                <span class="fas fa-plus"></span> Add timeslot
+                <span class="fas fa-plus"></span> Nieuw tijdslot
             </button>
             <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#roomDialog">
-                <span class="fas fa-plus"></span> Add room
+                <span class="fas fa-plus"></span> Nieuw lokaal
             </button>
             <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#preferenceDialog">
-                <span class="fas fa-plus"></span> Add preference
+                <span class="fas fa-plus"></span> Nieuwe voorkeur
             </button>
             <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#infoDialog">
                 <span class="fas fa-plus"></span> Info?
@@ -131,17 +131,17 @@
         </div>
 
         <div>
-            <h2 style="margin-top: 2rem">Overview</h2>
+            <h2 style="margin-top: 2rem">Overzicht</h2>
             <!--OVERVIEW TEACHERS PREFERENCES-->
             <nav class="navbar navbar-expand-lg navbar-light bg-light">
                 <a class = "navbar-brand" href = "/overview/preference.html" >
                     <button type="button" class="btn btn-outline-info">
-                        Teachers preferences
+                        Voorkeur
                     </button>
                 </a>
                 <a class = "navbar-brand" href = "/overview/teacher.html" >
                     <button type="button" class="btn btn-outline-info">
-                        Teachers
+                        Leraren
                     </button>
                 </a>
             </nav>
@@ -149,7 +149,7 @@
 
         </div>
         <!--OVERVIEW UNASSIGNED LESSONS-->
-        <h2 style="margin-top: 2rem">Unassigned lessons</h2>
+        <h2 style="margin-top: 2rem">Niet geplaatste lessen</h2>
         <div id="unassignedLessons" class="card-columns"></div>
         <!--START-->
 <!--        <h2 style="margin-top: 2rem">TEST</h2>
@@ -202,7 +202,40 @@
         </div>-->
         <!--END-->
     </div>
-
+<!--LessonBlock -->
+    <div class="modal fade" id="lessonBlockDialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>View</h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="lesBlockOption"> Lesblokken </label>
+                        <select class="form-control" id="lesBlockOption">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="lessonIdForLessonBlock"> Vak </label>
+                        <select class="form-control" id="lessonIdForLessonBlock">
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="sizeForNewLessonBlock"> Grootte nieuw blok </label>
+                        <input type="number" class="form-control" id="sizeForNewLessonBlock" required value="2">
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Klaar</button>
+                        <button type="button" class="btn btn-primary" id="addLessonBlockSubmitButton">Voeg lesblok toe</button>
+                        <button type="button" class="btn btn-primary" id="removeLessonBlockSubmitButton">Verwijder </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
 <!--INFO -->
     <div class="modal fade" id="infoDialog" tabindex="-1" role="dialog">
@@ -220,6 +253,7 @@
                         <select class="form-control" id="info_view">
                         </select>
                     </div>
+
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                     </div>
@@ -357,7 +391,7 @@
                     </button>
                 </div>
                 <div class="form-group">
-                    <h6> Add a teacher and timeslot on which he/she prefers NOT to teach. </h6>
+                    <h6> Add a teacher and timeslot at which he/she prefers NOT to teach. </h6>
                 </div>
                 <div class="form-group">
                     <label for="preference_teacher">Teacher</label>

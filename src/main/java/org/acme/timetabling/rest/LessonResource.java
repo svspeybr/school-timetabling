@@ -7,8 +7,6 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Path("/lessons")
 @Produces(MediaType.APPLICATION_JSON)
@@ -36,6 +34,12 @@ public class LessonResource {
         return lesson;
     }
 
+    @GET
+    public List<Lesson> get() {
+        return Lesson.listAll();
+    }
+
+/*
     //POST MULTIPLE LESSONS + CORRESPONDING LESSONTASK
     @POST
     @Path("add/{multiplicity}/{taskNumber}/{studentGroups}/{taughtBy}")
@@ -84,7 +88,7 @@ public class LessonResource {
         }
         return Response.status(Response.Status.OK).build();
 
-    }
+    }*/
 
     //LOCKING ONE LESSON -TO DO: MULTIPLE LESSONS!
     @POST
@@ -99,7 +103,7 @@ public class LessonResource {
 
     }
 
-    //COUPLING TWO LESSONS -TO DO: MULTIPLE LESSONS???
+   /* //COUPLING TWO LESSONS -TO DO: MULTIPLE LESSONS???
     @POST
     @Path("changeCoupling/{leId}")
     public Response changeCoupling(@PathParam("leId") Long lessonId) {
@@ -119,13 +123,13 @@ public class LessonResource {
             lessonTask.changeCoupled();
             //When 2 lessons are coupled, the last coupled its timeslot is only changed by the first
             //By setting the last coupled lesson at the back
-/*            lessonTask.deleteLessonsOfTaskList(lesson);
-            lessonTask.addLessonsToTaskList(lesson);*/
+*//*            lessonTask.deleteLessonsOfTaskList(lesson);
+            lessonTask.addLessonsToTaskList(lesson);*//*
 
         }
         return Response.status(Response.Status.OK).build();
 
-    }
+    }*/
     //SWAP CARDS OR INSERT CARD <--> FULLY DETERMINED BY id's IN 'app.js'
     @POST
     @Path("changeTiRoTe/dragLessonId/{dragLessonId}/{dropOtherTag}/{dropOtherId}/{dropFirstTag}/{dropFirstId}")
@@ -152,21 +156,6 @@ public class LessonResource {
             }
         }
 
-        List<LessonTask> leTaList = LessonTask.listAll();
-        leTaList = leTaList.stream().filter(leta -> leta.exceedMaxLessonsOnSameDay()).toList();
-        System.out.println(leTaList.size());
-        System.out.println(dragLesson.getLessonTask().exceedMaxLessonsOnSameDay());
-        System.out.println(dragLesson.getLessonTask().exceedMaxLessonsOnSameDayInt());
-        System.out.println("---------------");
-/*        List<LessonTask> letaList = LessonTask.listAll();
-        for (LessonTask leta: letaList) {
-            System.out.println(leta.getLessonsOfTaskList().get(0).getSubject());
-            System.out.println(leta.getLessonsOfTaskList().get(0).getTaughtBy().stream().map(Teacher::getAcronym).toList());
-            System.out.println(leta.countLessons0nSameDay());
-            System.out.println(leta.exceedMaxLessonsOnSameDay());
-            System.out.println(leta.exceedMaxLessonsOnSameDayInt());
-            System.out.println("---------------");
-        }*/
         return Response.status(Response.Status.OK).build();
     }
 
@@ -200,9 +189,9 @@ public class LessonResource {
         LessonTask lessonTask = lesson.getLessonTask();
         lessonTask.deleteLessonsOfTaskList(lesson);
         //+ Coupling
-        if (lessonTask.isCoupled() && lesson.isCoupled()) {
-            lessonTask.changeCoupled();
-        }
+        lessonTask.resetCoupling();
+
+
         if (lessonTask.getMultiplicity() < 1) {
             lessonTask.delete();
         }
@@ -215,30 +204,6 @@ public class LessonResource {
 
 
 
-    //**************************************************************************************************
-    // Convertor for pathparameters
-    //**************************************************************************************************
-
-    //Extract all teacherNames/studentGroupnames send by pathparameter in One sting: encoded
-    // Each name is separated by a separationValue in app.js --> '-'
-    private List<String> convertor(String encoded, char separationValue) {
-        String newName ="";
-        List<String> setOfNames = new ArrayList<>();
-        char[] charsOfNames = encoded.toCharArray();
-        for (char ch: charsOfNames){
-            if (ch != separationValue) {
-                newName += Character.toString(ch);
-            }
-            else{
-                setOfNames.add(newName);
-                newName ="";
-            }
-        }
-        if (newName.length() != 0) {
-            setOfNames.add(newName);
-        }
-        return setOfNames;
-    }
 
 /*    private Long extractId(String encoded){
         //omit prefix le- inserted in app.js

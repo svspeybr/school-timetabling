@@ -44,8 +44,8 @@ function refreshTimeTable() {
         const theadByTeacher = $("<thead>").appendTo(timeTableByTeacher);
         const headerRowByTeacher = $("<tr>").appendTo(theadByTeacher);
         headerRowByTeacher.append($("<th>Timeslot</th>"));
-        const teacherList = [...new Set(timeTable.lessonList.flatMap(
-                                                            lesson => lesson.taughtBy.map(
+        const teacherList = [...new Set(timeTable.lessonTaskList.flatMap(
+                                                            lessontask => lessontask.taughtBy.map(
                                                             teacher => teacher.acronym)))].sort();
         $.each(teacherList, (index, teacher) => {
             headerRowByTeacher
@@ -55,8 +55,8 @@ function refreshTimeTable() {
         const theadByStudentGroup = $("<thead>").appendTo(timeTableByStudentGroup);
         const headerRowByStudentGroup = $("<tr>").appendTo(theadByStudentGroup);
         headerRowByStudentGroup.append($("<th>Timeslot</th>"));
-        const studentGroupList = [...new Set(timeTable.lessonList.flatMap(
-                                                                    lesson => lesson.studentGroups.map(
+        const studentGroupList = [...new Set(timeTable.lessonTaskList.flatMap(
+                                                                    lessontask => lessontask.studentGroups.map(
                                                                     studentGroup => studentGroup.groupName)))].sort();
         $.each(studentGroupList, (index, studentGroup) => {
             headerRowByStudentGroup
@@ -108,7 +108,9 @@ function refreshTimeTable() {
                                 .append(`<small class = "fas fa-exclamation" />`).click(() =>changeLastResort(timeslot));
                 } else {
                     lastResortTimeslotButton
-                                .append(`<small class = "far fa-clock" />`).click(() =>changeLastResort(timeslot));
+                                .append(`<small class = "far fa-clock" />`)
+                                .click(() =>changeLastResort(timeslot));
+
                 }
                 rowByRoom
                     .append($(`<th class="align-middle"/>`)
@@ -180,92 +182,103 @@ function refreshTimeTable() {
 
         });
 
-        /*
+        /***
         ---------------------------------------
         GENERATING CARDS
         ---------------------------------------
-        */
-        $.each(timeTable.lessonList, (index, lesson) => {
-            const studentGroupsOfLesson = [...new Set(lesson.studentGroups)];
-            const teachersOfLesson = [...new Set(lesson.taughtBy)];
-            const color = pickColor(teachersOfLesson[0].acronym);
-            const lessonElementWithoutDelete = $(`<div class="card draggable" style="background-color: ${color}; width: 350px"/>`);
+        ***/
 
+/*         var count =0;
+         $.each(timeTable.lessonTaskList, (index, lessonTask) => {
+            count ++;
+            if (count < 40 ) {
+                const studentGroupsOfLessonTask = [...new Set(lessonTask.studentGroups)];
+                const teachersOfLessonTask = [...new Set(lessonTask.taughtBy.map(teacher => teacher.acronym))];
+                const lessonsOfLessonTask = [...new Set(lessonTask.lessonsOfTaskList)];
+*//*                const lessonsLi = [...new Set(lessonTask.lessonsOfTaskList.map(lesson => lesson.subject))];
+                alert(lessonLi);*//*
+                alert(lessonsOfLessonTask.length);
+            }
+         });
+         alert(count);*/
+
+        $.each(timeTable.lessonTaskList, (index, lessonTask) => {
+            var studentGroupsOfLessonTask = [...new Set(lessonTask.studentGroups)];
+            var teachersOfLessonTask = [...new Set(lessonTask.taughtBy)];
+            var lessonsOfLessonTask = [...new Set(lessonTask.lessonsOfTaskList)];
+            const color = pickColor(teachersOfLessonTask[0].acronym);
+            const lessonElementWithoutDelete = $(`<div class="card draggable" style="background-color: ${color}; width: 350px"/>`);
             const cardTextTeacher = $(`<h5 class="card-title ml-2 mb-1"/>`);
-            $.each(teachersOfLesson, (index, teacher) => {
+            $.each(teachersOfLessonTask, (index, teacher) => {
                 cardTextTeacher
                     .append(`${teacher.acronym} `);
             });
             lessonElementWithoutDelete
-                                .append(cardTextTeacher);
-
+                        .append(cardTextTeacher);
             lessonElementWithoutDelete
-                                .append($(`<div class="card-body p-2"/>`)
-                                .append($(`<h6 class="card-text ml-2 mb-1"/>`).append($(`<em/>`).text(lesson.subject))
-                                .append($(`<p class="ml-2 mt-1 card-text text-muted align-bottom float-right"/>`).text(lesson.lessonId))));
-
+                        .append($(`<div class="card-body p-2"/>`)
+                        .append($(`<h6 class="card-text ml-2 mb-1"/>`).append($(`<em/>`).text(lessonTask.subject))
+                        .append($(`<p class="ml-2 mt-1 card-text text-muted align-bottom float-right"/>`).text(lessonTask.taskNumber))));
             const cardTextStudentGroup = $(`<p class="card-text ml-2 mb-1"/>`).append($(`<em/>`).text("for "));
-            $.each(studentGroupsOfLesson, (index, studentGroup) => {
+            $.each(studentGroupsOfLessonTask, (index, studentGroup) => {
                 cardTextStudentGroup
                       .append($(`<em/>`).text(`${studentGroup.groupName} `));
             });
             lessonElementWithoutDelete
                             .append(cardTextStudentGroup);
-
-            const lessonElement = lessonElementWithoutDelete.clone();
-            lessonElement.find(".card-body").prepend(
-                $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
-                .append($(`<small class="fas fa-trash"/>`)).click(() => deleteLesson(lesson))
-            );
-            //PINNING OPTION TO CARD
-            if (lesson.pinned == true) {
+            $.each(lessonsOfLessonTask, (index, lesson) => {
+                const lessonElement = lessonElementWithoutDelete.clone();
                 lessonElement.find(".card-body").prepend(
-                      $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
-                      .append(`<small class = "fas fa-lock" />`).click(() =>changePinLesson(lesson))
+                    $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
+                    .append($(`<small class="fas fa-trash"/>`)).click(() => deleteLesson(lesson))
                 );
-            } else {
-                 lessonElement.find(".card-body").prepend(
+                //PINNING OPTION TO CARD
+                if (lesson.pinned == true) {
+                    lessonElement.find(".card-body").prepend(
+                          $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
+                        .append(`<small class = "fas fa-lock" />`).click(() =>changePinLesson(lesson))
+                    );
+                } else {
+                     lessonElement.find(".card-body").prepend(
                        $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
                        .append(`<small class = "fas fa-unlock" />`).click(() =>changePinLesson(lesson))
-                 );
-            }
-
-            //COUPLING OPTION TO CARD
-
-            if (lesson.coupled == true) {
-                  lessonElement.find(".card-body").prepend(
-                          $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
-                          .append(`<small class = "fas fa-link" />`).click(() =>changeCoupling(lesson))
-                  );
-            }
-            else {
-                   if (lesson.lessonTask.coupled == false) {
-                   lessonElement.find(".card-body").prepend(
-                           $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
-                           .append(`<small class = "fas fa-unlink" />`).click(() =>changeCoupling(lesson))
-                   );
-               }
-            }
-
-            //PLACING CARDS
-
-            if (lesson.timeslot == null ) {
-                unassignedLessons.append(lessonElement.prop('id', `le-${lesson.lessonId}-un-as`));
-            } else {
-                $.each(teachersOfLesson, (index, teacher) => {
-                    $(`#ti-${lesson.timeslot.timeslotId}-te-${teacher.acronym}`).append(lessonElementWithoutDelete.clone().prop('id',`le-${lesson.lessonId}-te-${teacher.acronym}`));
-                });
-                $.each(studentGroupsOfLesson, (index, studentGroup) => {
-                    $(`#ti-${lesson.timeslot.timeslotId}-st-${studentGroup.groupName}`).append(lessonElementWithoutDelete.clone().prop('id',`le-${lesson.lessonId}-st-${studentGroup.groupName}`));
-                });
-                if (lesson.room == null) {
-                    $(`#ti-${lesson.timeslot.timeslotId}-ro-0`).append(lessonElement.prop('id', `le-${lesson.lessonId}-ro-0`));
-                } else {
-                    $(`#ti-${lesson.timeslot.timeslotId}-ro-${lesson.room.roomId}`).append(lessonElement.prop('id', `le-${lesson.lessonId}-ro-${lesson.room.roomId}`));
+                     );
                 }
-            }
-        });
 
+                //COUPLING OPTION TO CARD
+
+                if (lessonTask.coupled == true) {
+                     lessonElement.find(".card-body").prepend(
+                          $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right" data-toggle="modal" data-target="#lessonBlockDialog"/>`)
+                          .append(`<span class = "fas fa-link" />`).click(() => fetchRelatedLessonBlocks(lessonTask))
+                    );
+                }
+                else {
+                     lessonElement.find(".card-body").prepend(
+                           $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right" data-toggle="modal" data-target="#lessonBlockDialog"/>`)
+                           .append(`<small class = "fas fa-unlink" />`).click(() => fetchRelatedLessonBlocks(lessonTask))
+                     );
+                }
+
+                //PLACING CARDS
+
+                if (lesson.timeslot == null ) {
+                    unassignedLessons.append(lessonElement.prop('id', `le-${lesson.lessonId}-un-as`));
+                } else {
+                    $.each(teachersOfLessonTask, (index, teacher) => {
+                        $(`#ti-${lesson.timeslot.timeslotId}-te-${teacher.acronym}`).append(lessonElementWithoutDelete.clone().prop('id',`le-${lesson.lessonId}-te-${teacher.acronym}`));
+                    });
+                    $.each(studentGroupsOfLessonTask, (index, studentGroup) => {
+                    $(`#ti-${lesson.timeslot.timeslotId}-st-${studentGroup.groupName}`).append(lessonElementWithoutDelete.clone().prop('id',`le-${lesson.lessonId}-st-${studentGroup.groupName}`));
+                    });
+                    if (lesson.room == null) {
+                        $(`#ti-${lesson.timeslot.timeslotId}-ro-0`).append(lessonElement.prop('id', `le-${lesson.lessonId}-ro-0`));
+                    } else {
+                        $(`#ti-${lesson.timeslot.timeslotId}-ro-${lesson.room.roomId}`).append(lessonElement.prop('id', `le-${lesson.lessonId}-ro-${lesson.room.roomId}`));
+                    }
+                }
+            });
+        });
         /*
         ---------------------------------------
         ADDING NEW LESSON OPTIONS
@@ -283,25 +296,6 @@ function refreshTimeTable() {
                            .append($("<option/>")));
         });
 
-/*        $.each(timeTable.teacherList, (index, teacher) => {
-            const color = pickColor(teacher.acronym);
-            const teacherElement = $(`<div class="card teacher" style="background-color: ${color}"/>`)
-                .append($(`<div class="card-body p-2"/>`)
-                    .append($(`<h5 class="card-title mb-1"/>`).text(teacher.acronym)));
-            teacherOverview.append(teacherElement);*/
-
-/*            $.each(teacher.preferenceList, (index, preference) => {
-                               const preferenceElement = $(`<div class="card preference" style="background-color: ${color}"/>`)
-                                   .append($(`<div class="card-body p-2"/>`)
-                                       .append($(`<h5 class="card-title mb-1"/>`).text(teacher.acronym))
-                                       .append($(`<p class="card-text ml-2 mb-1"/>`)
-                                           .append($(`<em/>`).text(`${preference.dayOfWeek.charAt(0) + preference.dayOfWeek.slice(1).toLowerCase()}
-                                                                    ${moment(preference.startTime, "HH:mm:ss").format("HH:mm")}
-                                                                     -
-                                                                     ${moment(preference.endTime, "HH:mm:ss").format("HH:mm")}`)
-                               )));
-                               teachersPreferences.append(preferenceElement);
-                           });*/
 
             /*
             ---------------------------------------
@@ -323,7 +317,7 @@ function refreshTimeTable() {
                 }
                 );
                 $(".droppable").droppable({
-                hoverClass: "hover",
+                hoverClass: "ui-state-active",
                 drop: function(event, ui){
 
                     var draggedId = ui.draggable.attr('id');
@@ -396,19 +390,6 @@ function refreshTimeTable() {
 
         });
 
-/*     $.each(timeTable.preferenceList, (index, preference) => {
-                const color = pickColor(preference.teacher.acronym);
-                const preferenceElement = $(`<div class="card preference" style="background-color: ${color}"/>`)
-                    .append($(`<div class="card-body p-2"/>`)
-                        .append($(`<h5 class="card-title mb-1"/>`).text(preference.teacher.acronym))
-                        .append($(`<small class="ml-2 mt-1 card-text text-muted align-bottom float-right"/>`)
-                        .text(`${preference.timeslot.dayOfWeek.charAt(0) + preference.timeslot.dayOfWeek.slice(1).toLowerCase()}
-                                       ${moment(preference.timeslot.startTime, "HH:mm:ss").format("HH:mm")}
-                                       -
-                                       ${moment(preference.timeslot.endTime, "HH:mm:ss").format("HH:mm")}`)));
-                teachersPreferences.append(preferenceElement);
-            });
-    });*/
 }
 
 
@@ -453,13 +434,6 @@ function stopSolving() {
 
 function addLesson() {
    var teachersV = $("#lesson_teachers").val();
-/*    var teachers= $("#lesson_teachers").toArray().map(item => item.text);*/
-    const putInfo = $("#info_view");
-/*    var teachers = [];
-    var teacherNames = $("#lesson_teachers").val();
-        $.each(teacherNames, (index, teacher) => {
-            teachers.push(`${teacher}`);
-        });*/
     var teachers =""
         $.each(teachersV, (index, teacher)=>{
             teachers= teachers + teacher + "-"
@@ -474,8 +448,7 @@ function addLesson() {
     var subject = $("#lesson_subject").val().trim();
     var taskNumber = parseInt($("#lesson_taskNumber").val(),10);
     var multiplicity = parseInt($("#lesson_multiplicity").val(),10);
-    $.post("/lessons/add/" + multiplicity  + "/"+taskNumber +"/"+ groupNames +"/"+ teachers , JSON.stringify({
-        "subject": subject
+    $.post("/lessonTasks/add/" + multiplicity  + "/"+taskNumber +"/"+ groupNames +"/"+ teachers + "/" + subject, JSON.stringify({
     }), function() {
          refreshTimeTable();
     }).fail(function(xhr, ajaxOptions, thrownError) {
@@ -493,7 +466,7 @@ function deleteLesson(lesson) {
     });
 }
 
-function changeCoupling(lesson) {
+/*function changeCoupling(lesson) {
     $.post("/lessons/changeCoupling/" + lesson.lessonId, JSON.stringify({
         "lessonId": lesson.lessonId
     }), function() {
@@ -501,7 +474,146 @@ function changeCoupling(lesson) {
     }).fail(function(xhr, ajaxOptions, thrownError) {
         showError("Locking lesson (" + lesson.name + ") failed.", xhr);
     });
+}*/
+
+function fetchRelatedLessonBlocks(lessonTask){
+    const lessontaskIdForLessonBlockDisplay = $("#lessonIdForLessonBlock");
+    lessontaskIdForLessonBlockDisplay.children().remove();
+    const lesBlockOverview = $("#lesBlockOption");
+    lesBlockOverview.children().remove();
+    lessontaskIdForLessonBlockDisplay
+                           .append($(`<option value= ${lessonTask.taskNumber}>`).text(`${lessonTask.taskNumber}`)
+                           .append($("<option/>")));
+    var lessonBlockSizeList = lessonTask.couplingNumbers;
+    if (lessonBlockSizeList.length != 0) {
+        $.each(lessonBlockSizeList, (index, lesBlockSize)=>{
+            alert(lesBlockSize);
+            lesBlockOverview
+                .append($(`<option value= ${lesBlockSize}>`).text("Block" + (index+1).toString()+ " - #"+lesBlockSize.toString())
+                .append($("<option/>")));
+        });
+    }
 }
+
+function fetchRelatedLessonBlocksByTask(taskId){
+    const lessontaskIdForLessonBlockDisplay = $("#lessonIdForLessonBlock");
+    lessontaskIdForLessonBlockDisplay.children().remove();
+    const lesBlockOverview = $("#lesBlockOption");
+    lesBlockOverview.children().remove();
+    $.get("/lessonTasks/"+taskId, function(lessonTask) {
+    lessontaskIdForLessonBlockDisplay
+                           .append($(`<option value= ${lessonTask.taskNumber}>`).text(`${lessonTask.taskNumber}`)
+                           .append($("<option/>")));
+    var lessonBlockSizeList = lessonTask.couplingNumbers;
+    if (lessonBlockSizeList.length != 0) {
+        $.each(lessonBlockSizeList, (index, lesBlockSize)=>{
+            alert(lesBlockSize);
+            lesBlockOverview
+                .append($(`<option value= ${lesBlockSize}>`).text("Block" + (index+1).toString()+ " - #"+lesBlockSize.toString())
+                .append($("<option/>")));
+        });
+    }
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+                   showError("Extracting lessonBlocks for task (" + taskId + ") failed.", xhr);
+    });
+}
+
+/*function fetchRelatedLessonBlocks(lesson){
+    const lessonIdForLessonBlockDisplay = $("#lessonIdForLessonBlock");
+    lessonIdForLessonBlockDisplay.children().remove();
+    const lesBlockOverview = $("#lesBlockOption");
+    lesBlockOverview.children().remove();
+    lesBlockOverview
+              .append($(`<option value= "NewLessonBlock">`).text("New lessonblock")
+              .append($("<option/>")));
+    $.get("/lessonBlocks/"+ lesson.lessonId, function(lessonBlockList) {
+            lessonIdForLessonBlockDisplay
+                                   .append($(`<option value= ${lesson.lessonId}>`).text(lesson.subject)
+                                   .append($("<option/>")));
+            var mul = 0;
+            if (lessonBlockList.length != 0) {
+                $.each(lessonBlockList, (index, lesBlock)=>{
+                    mul++;
+                    lesBlockOverview
+                        .append($(`<option value= ${lesBlock.lessonBlockId}>`).text("Block" + mul.toString())
+                        .append($("<option/>")));
+                });
+            }
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+             showError("Extracting lessonBlocks for (" + lesson.subject + ") failed.", xhr);
+    });
+}*/
+
+function coupleToLessonBlock() {
+    var size= $("#sizeForNewLessonBlock").val();
+    var taskId= $("#lessonIdForLessonBlock").val();
+    alert(taskId)
+    $.post("/lessonTasks/addCouplingOfSize/"+ size +"/ForTask/"+ taskId, JSON.stringify({
+    }),
+    function() {
+        refreshTimeTable();
+        fetchRelatedLessonBlocksByTask(taskId);
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+        showError("Adding new lessonblock failed.", xhr);
+    });
+    }
+
+function uncoupleFromLessonBlock() {
+
+    var taskId = $("#lessonIdForLessonBlock").val();
+    var size = $("#lesBlockOption").val();
+    if (size != null) {
+    $.post("/lessonTasks/removeCouplingOfSize/" + size +"/FromTask/" +taskId, JSON.stringify({
+    }),
+    function() {
+        refreshTimeTable();
+        fetchRelatedLessonBlocksByTask(taskId);
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+        showError("Verwijderen van lesblok is mislukt.", xhr);
+    });
+    }
+    }
+
+
+/*function coupleToLessonBlock() {
+    var lessonBlock = $("#lesBlockOption").val();
+    var lesId= parseInt($("#lessonIdForLessonBlock").val(),10);
+    if (lessonBlock == "NewLessonBlock"){
+        $.post("/lessonBlocks/addNewBlock/"+ lesId, JSON.stringify({
+        "lessonId": lesId
+        }),
+        function() {
+            refreshTimeTable();
+        }).fail(function(xhr, ajaxOptions, thrownError) {
+            showError("Adding new lessonblock failed.", xhr);
+        });
+    } else {
+        lessonBlock = parseInt($("#lesBlockOption").val(),10);
+        $.post("/lessonBlocks/addLesson/"+ lesId +"/toLessonBlock/"+ lessonBlock , JSON.stringify({
+        "lessonId": lesId,
+        "lessonBlock": lessonBlock
+        }),
+        function() {
+            refreshTimeTable();
+        }).fail(function(xhr, ajaxOptions, thrownError) {
+            showError("Adding new lessonblock failed.", xhr);
+        });
+    }
+    $('#lessonBlockDialog').modal('toggle');
+}*/
+
+/*function uncoupleFromLessonBlock(lesson) {
+    var lesId = lesson.lessonId;
+     $.post("/lessonBlocks/removeLesson/"+ lesId, JSON.stringify({
+     "lessonId": lesId
+     }),
+      function() {
+         refreshTimeTable();
+     }).fail(function(xhr, ajaxOptions, thrownError) {
+         showError("Adding new lessonblock failed.", xhr);
+      });
+
+}*/
 
 function changePinLesson(lesson) {
     $.post("/lessons/changePin/" + lesson.lessonId, JSON.stringify({
@@ -509,7 +621,7 @@ function changePinLesson(lesson) {
     }), function() {
         refreshTimeTable();
     }).fail(function(xhr, ajaxOptions, thrownError) {
-        showError("Locking lesson (" + lesson.name + ") failed.", xhr);
+        showError("Locking lesson (" + lesson.subject + ") failed.", xhr);
     });
 }
 
@@ -529,10 +641,13 @@ function addTimeslot() {
         "startTime": $("#timeslot_startTime").val().trim(),
         "endTime": $("#timeslot_endTime").val().trim()
     }), function() {
+/*        $.post("/timeslots/updatePositions", {}, function() {
+        });*/
         refreshTimeTable();
     }).fail(function(xhr, ajaxOptions, thrownError) {
         showError("Adding timeslot failed.", xhr);
     });
+
     $('#timeslotDialog').modal('toggle');
 }
 
@@ -681,6 +796,13 @@ $(document).ready(function() {
     //GRID
 
     //GRID END
+    $("#addLessonBlockSubmitButton").click(function() {
+           coupleToLessonBlock();
+    });
+
+    $("#removeLessonBlockSubmitButton").click(function() {
+         uncoupleFromLessonBlock();
+    });
 
     $("#refreshButton").click(function() {
         refreshTimeTable();
@@ -726,47 +848,6 @@ $(document).ready(function() {
 
 });
 
-/*
-    function dragElement(elmnt) {
-      var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-      if (document.getElementById(elmnt.id + "header")) {
-        // if present, the header is where you move the DIV from:
-        document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
-      } else {
-        //otherwise, move the DIV from anywhere inside the DIV:
-        elmnt.onmousedown = dragMouseDown;
-      }
-
-    function dragMouseDown(e) {
-        e = e || window.event;
-        e.preventDefault();
-        // get the mouse cursor position at startup:
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        // call a function whenever the cursor moves:
-        document.onmousemove = elementDrag;
-      }
-
-      function elementDrag(e) {
-        e = e || window.event;
-        e.preventDefault();
-        // calculate the new cursor position:
-        pos1 = pos3 - e.clientX;
-        pos2 = pos4 - e.clientY;
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        // set the element's new position:
-        elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
-        elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
-      }
-
-      function closeDragElement() {
-        // stop moving when mouse button is released:
-        document.onmouseup = null;
-        document.onmousemove = null;
-      }
-    }*/
 
 // ****************************************************************************
 // TangoColorFactory
