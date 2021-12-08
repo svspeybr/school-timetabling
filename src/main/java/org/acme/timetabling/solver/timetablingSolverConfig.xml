@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<solver>
+    <!--<environmentMode>FULL_ASSERT</environmentMode>--><!-- To slowly prove there are no bugs in this code -->
+    <!--<moveThreadCount>AUTO</moveThreadCount>--><!-- To solve faster by saturating multiple CPU cores -->
+
+    <solutionClass>org.acme.timetabling.domain.TimeTable</solutionClass>
+    <entityClass>org.acme.timetabling.domain.LessonAssignment</entityClass>
+
+    <scoreDirectorFactory>
+        <constraintProviderClass>org.acme.timetabling.solver.TimeTableConstraintProvider</constraintProviderClass>
+        <!--<initializingScoreTrend>ONLY_DOWN</initializingScoreTrend>-->
+    </scoreDirectorFactory>
+
+    <termination>
+        <secondsSpentLimit>30</secondsSpentLimit>
+    </termination>
+
+    <constructionHeuristic>
+        <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+    </constructionHeuristic>
+    <localSearch>
+        <unionMoveSelector>
+            <changeMoveSelector>
+                <entitySelector>
+                    <entityClass>org.acme.timetabling.domain.LessonAssignment</entityClass>
+                </entitySelector>
+                <valueSelector>
+                    <variableName>timeslot</variableName>
+                    <variableName>room</variableName>
+                </valueSelector>
+            </changeMoveSelector>
+            <swapMoveSelector>
+                <entitySelector>
+                    <entityClass>org.acme.timetabling.domain.LessonAssignment</entityClass>
+                </entitySelector>
+                <filterClass>org.acme.timetabling.domain.solver.DifferentLessonSwapMoveFilter</filterClass>
+                <variableNameInclude>timeslot</variableNameInclude>
+                <variableNameInclude>room</variableNameInclude>
+            </swapMoveSelector>
+        </unionMoveSelector>
+        <acceptor>
+            <simulatedAnnealingStartingTemperature>0hard/400soft</simulatedAnnealingStartingTemperature>
+        </acceptor>
+        <forager>
+            <acceptedCountLimit>4</acceptedCountLimit>
+        </forager>
+    </localSearch>
+    <!--   <constructionHeuristic>
+        <constructionHeuristicType>FIRST_FIT_DECREASING</constructionHeuristicType>
+    </constructionHeuristic>
+    <localSearch>
+        <changeMoveSelector>
+            <selectionOrder>ORIGINAL</selectionOrder>
+        </changeMoveSelector>
+        &lt;!&ndash; changeMoveSelector is the generic form of RowChangeMoveFactory: &ndash;&gt;
+        &lt;!&ndash;<moveListFactory>&ndash;&gt;
+        &lt;!&ndash;<moveListFactoryClass>org.optaplanner.examples.nqueens.optional.solver.move.factory.RowChangeMoveFactory</moveListFactoryClass>&ndash;&gt;
+        &lt;!&ndash;</moveListFactory>&ndash;&gt;
+        <acceptor>
+            <entityTabuSize>5</entityTabuSize>
+        </acceptor>
+        <forager>
+            &lt;!&ndash; Real world problems require use of <acceptedCountLimit> &ndash;&gt;
+        </forager>
+    </localSearch>-->
+
+</solver>

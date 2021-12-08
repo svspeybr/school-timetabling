@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<plannerBenchmark>
+    <benchmarkDirectory>data</benchmarkDirectory>
+    <warmUpSecondsSpentLimit>30</warmUpSecondsSpentLimit>
+
+    <inheritedSolverBenchmark>
+        <solver>
+            <solutionClass>org.acme.timetabling.domain.TimeTable</solutionClass>
+            <entityClass>org.acme.timetabling.domain.LessonAssignment</entityClass>
+            <scoreDirectorFactory>
+                <constraintProviderClass>org.acme.timetabling.solver.TimeTableConstraintProvider</constraintProviderClass>
+            </scoreDirectorFactory>
+            <termination>
+                <secondsSpentLimit>60</secondsSpentLimit>
+            </termination>
+        </solver>
+        <problemBenchmarks>
+            <solutionFileIOClass>org.acme.timetabling.persistence.TimetablingXmlSolutionFileIO</solutionFileIOClass>
+            <inputSolutionFile>data/unsolved/SPC3thGrade.xml</inputSolutionFile>
+            <problemStatisticType>BEST_SCORE</problemStatisticType>
+        </problemBenchmarks>
+    </inheritedSolverBenchmark>
+
+<!--    <solverBenchmarkBluePrint>
+        <solverBenchmarkBluePrintType>EVERY_LOCAL_SEARCH_TYPE</solverBenchmarkBluePrintType>
+    </solverBenchmarkBluePrint>-->
+
+    <solverBenchmark>
+        <name>First Fit</name>
+        <solver>
+            <constructionHeuristic>
+                <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+            </constructionHeuristic>
+        </solver>
+    </solverBenchmark>
+
+<!--        <solverBenchmark>
+            <name>First Fit Decreasing</name>
+            <solver>
+                <constructionHeuristic>
+                    <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+                </constructionHeuristic>
+            </solver>
+        </solverBenchmark>-->
+
+    <solverBenchmark>
+            <name>Tabu Search</name>
+        <solver >
+            <constructionHeuristic>
+                <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+            </constructionHeuristic>
+            <localSearch>
+                <unionMoveSelector>
+                <changeMoveSelector/>
+                <swapMoveSelector/>
+<!--                    <entitySelector>
+                        <filterClass>org.acme.timetabling.domain.solver.DifferentLessonSwapMoveFilter</filterClass>
+                    </entitySelector>
+                </swapMoveSelector>-->
+<!--                <pillarChangeMoveSelector/>
+                <pillarSwapMoveSelector/>-->
+                </unionMoveSelector>
+                <acceptor>
+                    <entityTabuSize>7</entityTabuSize>
+                </acceptor>
+                <forager>
+                    <acceptedCountLimit>1000</acceptedCountLimit>
+                </forager>
+            </localSearch>
+        </solver>
+    </solverBenchmark>
+
+            <solverBenchmark>
+                <name>Simulated Annealing1</name>
+                <solver>
+                    <constructionHeuristic>
+                        <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+                    </constructionHeuristic>
+                    <localSearch>
+                        <unionMoveSelector>
+                            <changeMoveSelector/>
+                            <swapMoveSelector/>
+                        </unionMoveSelector>
+                        <acceptor>
+                            <simulatedAnnealingStartingTemperature>0hard/400soft</simulatedAnnealingStartingTemperature>
+                        </acceptor>
+                        <forager>
+                            <acceptedCountLimit>4</acceptedCountLimit>
+                        </forager>
+                    </localSearch>
+                </solver>
+            </solverBenchmark>
+
+    <solverBenchmark>
+        <name>Simulated Annealing2</name>
+        <solver>
+            <constructionHeuristic>
+                <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+            </constructionHeuristic>
+            <localSearch>
+                <unionMoveSelector>
+                    <changeMoveSelector/>
+                    <swapMoveSelector>
+                        <entitySelector>
+                            <entityClass>org.acme.timetabling.domain.Lesson</entityClass>
+                        </entitySelector>
+                        <filterClass>org.acme.timetabling.domain.solver.DifferentLessonSwapMoveFilter</filterClass>
+                    </swapMoveSelector>
+                </unionMoveSelector>
+                <acceptor>
+                    <simulatedAnnealingStartingTemperature>0hard/400soft</simulatedAnnealingStartingTemperature>
+                </acceptor>
+                <forager>
+                    <acceptedCountLimit>4</acceptedCountLimit>
+                </forager>
+            </localSearch>
+        </solver>
+    </solverBenchmark>
+<!--
+            <solverBenchmark>
+                <name>Late Acceptance</name>
+                <solver>
+                    <constructionHeuristic>
+                        <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+                    </constructionHeuristic>
+                    <localSearch>
+                        <unionMoveSelector>
+                            <changeMoveSelector/>
+                            <swapMoveSelector/>
+                        </unionMoveSelector>
+                        <acceptor>
+                            <lateAcceptanceSize>400</lateAcceptanceSize>
+                        </acceptor>
+                        <forager>
+                            <acceptedCountLimit>4</acceptedCountLimit>
+                        </forager>
+                    </localSearch>
+                </solver>
+            </solverBenchmark>-->
+
+<!--        <solverBenchmark>
+            <name>BRANCH_AND_BOUND</name>
+            <solver>
+                <constructionHeuristic>
+                    <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+                </constructionHeuristic>
+                <localSearch>
+                    <unionMoveSelector>
+                        <changeMoveSelector/>
+                        <swapMoveSelector/>
+                    </unionMoveSelector>
+                    <acceptor>
+                        <lateAcceptanceSize>400</lateAcceptanceSize>
+                    </acceptor>
+                    <forager>
+                        <acceptedCountLimit>4</acceptedCountLimit>
+                    </forager>
+                </localSearch>
+            </solver>
+        </solverBenchmark>-->
+
+</plannerBenchmark>

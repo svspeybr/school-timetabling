@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>2021-12-05_190830 Planner benchmark report</title>
+    <link href="twitterbootstrap/css/bootstrap.css" rel="stylesheet">
+    <link href="twitterbootstrap/css/bootstrap-responsive.css" rel="stylesheet"/>
+    <link href="twitterbootstrap/css/prettify.css" rel="stylesheet"/>
+    <link href="website/css/benchmarkReport.css" rel="stylesheet"/>
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+    <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+</head>
+<body onload="prettyPrint()">
+
+<div class="container-fluid">
+    <div class="row-fluid">
+        <div class="span2">
+            <div class="benchmark-report-nav">
+                <div style="margin-top: 10px;">
+                    <a href="https://www.optaplanner.org">
+                        <img src="website/img/optaPlannerLogo.png" alt="OptaPlanner"/>
+                    </a>
+                </div>
+                <div style="margin-top: 10px; margin-bottom: 10px;">
+                    <ul class="nav nav-list">
+                        <li><a href="#summary">Summary</a></li>
+                        <li>
+                            <ul class="nav nav-list">
+                                <li><a href="#summary_result">Result</a></li>
+                                <li><a href="#summary_performance">Performance</a></li>
+                            </ul>
+                        </li>
+                        <li class="divider"></li>
+                        <li><a href="#problemBenchmarkResult">Problem benchmarks</a></li>
+                        <li>
+                            <ul class="nav nav-list">
+                                <li><a href="#problemBenchmark_SPC3thGrade">SPC3thGrade&nbsp;</a></li>
+                            </ul>
+                        </li>
+                        <li class="divider"></li>
+                        <li><a href="#solverBenchmarkResult">Solver benchmarks</a></li>
+                        <li>
+                            <ul class="nav nav-list">
+                                <li><a href="#solverBenchmark_First-002D0020Fit">First Fit&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</a></li>
+                                <li><a href="#solverBenchmark_Tabu-002D0020Search">Tabu Search&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</a></li>
+                                <li><a href="#solverBenchmark_Simulated-002D0020Annealing">Simulated Annealing&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</a></li>
+                                <li><a href="#solverBenchmark_BRANCH_AND_BOUND">BRANCH_AND_BOUND&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</a></li>
+                            </ul>
+                        </li>
+                        <li class="divider"></li>
+                        <li><a href="#benchmarkInformation">Benchmark information</a></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        <div class="span10">
+            <header class="main-page-header">
+                <h1>Benchmark report</h1>
+            </header>
+            <section id="summary">
+                <div class="page-header">
+                    <h1>Summary</h1>
+                </div>
+                <div class="alert alert-error">
+                    <p>The loggingLevel (debug) of org.drools.core is high. This decreases performance. Maybe set the loggingLevel to info or lower.</p>
+                </div>
+
+                <section id="summary_result">
+                    <h2>Result summary</h2>
+                    <div class="tabbable">
+                        <ul class="nav nav-pills">
+                            <li class="active">
+                                <a href="#summary_bestScore" data-toggle="tab">Best score</a>
+                            </li>
+                            <li>
+                                <a href="#summary_bestScoreScalability" data-toggle="tab">Best score scalability</a>
+                            </li>
+                            <li>
+                                <a href="#summary_bestScoreDistribution" data-toggle="tab">Best score distribution</a>
+                            </li>
+                            <li>
+                                <a href="#summary_winningScoreDifference" data-toggle="tab">Winning score difference</a>
+                            </li>
+                            <li>
+                                <a href="#summary_worstScoreDifferencePercentage" data-toggle="tab">Worst score difference percentage (ROI)</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="summary_bestScore">
+                                <h3>Best score summary</h3>
+                                <p>Useful for visualizing the best solver configuration.</p>
+    <div class="tabbable tabs-right">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="#summary_bestScore_chart_0" data-toggle="tab">Hard score</a>
+            </li>
+            <li>
+                <a href="#summary_bestScore_chart_1" data-toggle="tab">Soft score</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="summary_bestScore_chart_0">
+                <div class="benchmark-chart">
+                    <img src="summary/bestScoreSummaryLevel0.png"/>
+                </div>
+            </div>
+            <div class="tab-pane" id="summary_bestScore_chart_1">
+                <div class="benchmark-chart">
+                    <img src="summary/bestScoreSummaryLevel1.png"/>
+                </div>
+            </div>
+        </div>
+    </div>
+                                <table class="benchmark-table table table-striped table-bordered">
+                                    <tr>
+                                        <th rowspan="2">Solver</th>
+                                        <th rowspan="2">Total</th>
+                                        <th rowspan="2">Average</th>
+                                        <th rowspan="2">Standard Deviation</th>
+                                        <th colspan="1">Problem</th>
+                                    </tr>
+                                    <tr>
+                                        <th>SPC3thGrade</th>
+                                    </tr>
+                                    <tr>
+                                        <th>First Fit&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>-23hard/0soft</td>
+                                        <td>-23hard/0soft</td>
+                                        <td>0.0E0/0.0E0</td>
+                                                        <td>-23hard/0soft&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tabu Search&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>-19hard/0soft</td>
+                                        <td>-19hard/0soft</td>
+                                        <td>0.0E0/0.0E0</td>
+                                                        <td>-19hard/0soft&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                    <tr class="favoriteSolverBenchmark">
+                                        <th>Simulated Annealing&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>-11hard/0soft</td>
+                                        <td>-11hard/0soft</td>
+                                        <td>0.0E0/0.0E0</td>
+                                                        <td>-11hard/0soft&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                    <tr>
+                                        <th>BRANCH_AND_BOUND&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>-19hard/0soft</td>
+                                        <td>-19hard/0soft</td>
+                                        <td>0.0E0/0.0E0</td>
+                                                        <td>-19hard/0soft&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="tab-pane" id="summary_bestScoreScalability">
+                                <h3>Best score scalability summary</h3>
+                                <p>Useful for visualizing the scalability of each solver configuration.</p>
+    <div class="tabbable tabs-right">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="#summary_bestScoreScalability_chart_0" data-toggle="tab">Hard score</a>
+            </li>
+            <li>
+                <a href="#summary_bestScoreScalability_chart_1" data-toggle="tab">Soft score</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="summary_bestScoreScalability_chart_0">
+                <div class="benchmark-chart">
+                    <img src="summary/bestScoreScalabilitySummaryLevel0.png"/>
+                </div>
+            </div>
+            <div class="tab-pane" id="summary_bestScoreScalability_chart_1">
+                <div class="benchmark-chart">
+                    <img src="summary/bestScoreScalabilitySummaryLevel1.png"/>
+                </div>
+            </div>
+        </div>
+    </div>
+                            </div>
+                            <div class="tab-pane" id="summary_bestScoreDistribution">
+                                <h3>Best score distribution summary</h3>
+                                <p>Useful for visualizing the reliability of each solver configuration.</p>
+                                <p>Maximum subSingle count: 1<br/></p>
+                                    <div class="alert alert-error">
+                                        <p>The benchmarker did not run multiple subSingles, so there is no distribution and therefore no reliability indication.</p>
+                                    </div>
+    <div class="tabbable tabs-right">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="#summary_bestScoreDistribution_chart_0" data-toggle="tab">Hard score</a>
+            </li>
+            <li>
+                <a href="#summary_bestScoreDistribution_chart_1" data-toggle="tab">Soft score</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="summary_bestScoreDistribution_chart_0">
+                <div class="benchmark-chart">
+                    <img src="summary/bestScoreDistributionSummaryLevel0.png"/>
+                </div>
+            </div>
+            <div class="tab-pane" id="summary_bestScoreDistribution_chart_1">
+                <div class="benchmark-chart">
+                    <img src="summary/bestScoreDistributionSummaryLevel1.png"/>
+                </div>
+            </div>
+        </div>
+    </div>
+                            </div>
+                            <div class="tab-pane" id="summary_winningScoreDifference">
+                                <h3>Winning score difference summary</h3>
+                                <p>Useful for zooming in on the results of the best score summary.</p>
+    <div class="tabbable tabs-right">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="#summary_winningScoreDifference_chart_0" data-toggle="tab">Hard score</a>
+            </li>
+            <li>
+                <a href="#summary_winningScoreDifference_chart_1" data-toggle="tab">Soft score</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="summary_winningScoreDifference_chart_0">
+                <div class="benchmark-chart">
+                    <img src="summary/winningScoreDifferenceSummaryLevel0.png"/>
+                </div>
+            </div>
+            <div class="tab-pane" id="summary_winningScoreDifference_chart_1">
+                <div class="benchmark-chart">
+                    <img src="summary/winningScoreDifferenceSummaryLevel1.png"/>
+                </div>
+            </div>
+        </div>
+    </div>
+                                <table class="benchmark-table table table-striped table-bordered">
+                                    <tr>
+                                        <th rowspan="2">Solver</th>
+                                        <th rowspan="2">Total</th>
+                                        <th rowspan="2">Average</th>
+                                        <th colspan="1">Problem</th>
+                                    </tr>
+                                    <tr>
+                                        <th>SPC3thGrade</th>
+                                    </tr>
+                                    <tr>
+                                        <th>First Fit&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>-12hard/0soft</td>
+                                        <td>-12hard/0soft</td>
+                                                    <td>-12hard/0soft&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tabu Search&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>-8hard/0soft</td>
+                                        <td>-8hard/0soft</td>
+                                                    <td>-8hard/0soft&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                    <tr class="favoriteSolverBenchmark">
+                                        <th>Simulated Annealing&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>0hard/0soft</td>
+                                        <td>0hard/0soft</td>
+                                                    <td>0hard/0soft&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                    <tr>
+                                        <th>BRANCH_AND_BOUND&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>-8hard/0soft</td>
+                                        <td>-8hard/0soft</td>
+                                                    <td>-8hard/0soft&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="tab-pane" id="summary_worstScoreDifferencePercentage">
+                                <h3>Worst score difference percentage summary (ROI)</h3>
+                                <p>Useful for visualizing the return on investment (ROI) to decision makers.</p>
+    <div class="tabbable tabs-right">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="#summary_worstScoreDifferencePercentage_chart_0" data-toggle="tab">Hard score</a>
+            </li>
+            <li>
+                <a href="#summary_worstScoreDifferencePercentage_chart_1" data-toggle="tab">Soft score</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="summary_worstScoreDifferencePercentage_chart_0">
+                <div class="benchmark-chart">
+                    <img src="summary/worstScoreDifferencePercentageSummaryLevel0.png"/>
+                </div>
+            </div>
+            <div class="tab-pane" id="summary_worstScoreDifferencePercentage_chart_1">
+                <div class="benchmark-chart">
+                    <img src="summary/worstScoreDifferencePercentageSummaryLevel1.png"/>
+                </div>
+            </div>
+        </div>
+    </div>
+                                <table class="benchmark-table table table-striped table-bordered">
+                                    <tr>
+                                        <th rowspan="2">Solver</th>
+                                        <th rowspan="2">Average</th>
+                                        <th colspan="1">Problem</th>
+                                    </tr>
+                                    <tr>
+                                        <th>SPC3thGrade</th>
+                                    </tr>
+                                    <tr>
+                                        <th>First Fit&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                            <td>0,00%/0,00%</td>
+                                                    <td>0,00%/0,00%&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tabu Search&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                            <td>17,39%/0,00%</td>
+                                                    <td>17,39%/0,00%&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                    <tr class="favoriteSolverBenchmark">
+                                        <th>Simulated Annealing&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                            <td>52,17%/0,00%</td>
+                                                    <td>52,17%/0,00%&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                    <tr>
+                                        <th>BRANCH_AND_BOUND&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                            <td>17,39%/0,00%</td>
+                                                    <td>17,39%/0,00%&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Infeasible score">!</span>
+</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="summary_performance">
+                    <h2>Performance summary</h2>
+                    <div class="tabbable">
+                        <ul class="nav nav-pills">
+                            <li class="active">
+                                <a href="#summary_scoreCalculationSpeed" data-toggle="tab">Score calculation speed</a>
+                            </li>
+                            <li>
+                                <a href="#summary_worstScoreCalculationSpeedDifferencePercentage" data-toggle="tab">Worst score calculation speed difference percentage</a>
+                            </li>
+                            <li>
+                                <a href="#summary_timeSpent" data-toggle="tab">Time spent</a>
+                            </li>
+                            <li>
+                                <a href="#summary_timeSpentScalability" data-toggle="tab">Time spent scalability</a>
+                            </li>
+                            <li>
+                                <a href="#summary_bestScorePerTimeSpent" data-toggle="tab">Best score per time spent</a>
+                            </li>
+                        </ul>
+                        <div class="tab-content">
+                            <div class="tab-pane active" id="summary_scoreCalculationSpeed">
+                                <h3>Score calculation speed summary</h3>
+                                <p>
+                                    Useful for comparing different score calculators and/or constraint implementations
+                                    (presuming that the solver configurations do not differ otherwise).
+                                    Also useful to measure the scalability cost of an extra constraint.
+                                </p>
+                                <div class="benchmark-chart">
+                                    <img src="summary/scoreCalculationSpeedSummary.png"/>
+                                </div>
+                                <table class="benchmark-table table table-striped table-bordered">
+                                    <tr>
+                                        <th rowspan="2">Solver</th>
+                                        <th rowspan="2">Average</th>
+                                        <th colspan="1">Problem</th>
+                                    </tr>
+                                    <tr>
+                                        <th>SPC3thGrade</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="problemScale">Problem scale</th>
+                                        <td class="problemScale">157.065</td>
+                                        <td class="problemScale">157.065</td>
+                                    </tr>
+                                    <tr>
+                                        <th>First Fit&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>35.201/s</td>
+                                                        <td>35.201/s</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tabu Search&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>20.095/s</td>
+                                                        <td>20.095/s</td>
+                                    </tr>
+                                    <tr class="favoriteSolverBenchmark">
+                                        <th>Simulated Annealing&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>19.168/s</td>
+                                                        <td>19.168/s</td>
+                                    </tr>
+                                    <tr>
+                                        <th>BRANCH_AND_BOUND&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>19.451/s</td>
+                                                        <td>19.451/s</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="tab-pane" id="summary_worstScoreCalculationSpeedDifferencePercentage">
+                                <h3>Worst score calculation speed difference percentage</h3>
+                                <p>
+                                    Useful for comparing different score calculators and/or constraint implementations
+                                    (presuming that the solver configurations do not differ otherwise).
+                                    Also useful to measure the scalability cost of an extra constraint.
+                                </p>
+                                <div class="benchmark-chart">
+                                    <img src="summary/worstScoreCalculationSpeedDifferencePercentageSummary.png"/>
+                                </div>
+                                <table class="benchmark-table table table-striped table-bordered">
+                                    <tr>
+                                        <th rowspan="2">Solver</th>
+                                        <th rowspan="2">Average</th>
+                                        <th colspan="1">Problem</th>
+                                    </tr>
+                                    <tr>
+                                        <th>SPC3thGrade</th>
+                                    </tr>
+                                    <tr>
+                                        <th>First Fit&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                            <td>83,64%</td>
+                                                    <td>83,64%</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tabu Search&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                            <td>4,84%</td>
+                                                    <td>4,84%</td>
+                                    </tr>
+                                    <tr class="favoriteSolverBenchmark">
+                                        <th>Simulated Annealing&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                            <td>0,00%</td>
+                                                    <td>0,00%</td>
+                                    </tr>
+                                    <tr>
+                                        <th>BRANCH_AND_BOUND&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                            <td>1,48%</td>
+                                                    <td>1,48%</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="tab-pane" id="summary_timeSpent">
+                                <h3>Time spent summary</h3>
+                                <p>Useful for visualizing the performance of construction heuristics (presuming that no other solver phases are configured).</p>
+                                <div class="benchmark-chart">
+                                    <img src="summary/timeSpentSummary.png"/>
+                                </div>
+                                <table class="benchmark-table table table-striped table-bordered">
+                                    <tr>
+                                        <th rowspan="2">Solver</th>
+                                        <th rowspan="2">Average</th>
+                                        <th colspan="1">Problem</th>
+                                    </tr>
+                                    <tr>
+                                        <th>SPC3thGrade</th>
+                                    </tr>
+                                    <tr>
+                                        <th class="problemScale">Problem scale</th>
+                                        <td class="problemScale">157.065</td>
+                                        <td class="problemScale">157.065</td>
+                                    </tr>
+                                    <tr>
+                                        <th>First Fit&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>4.462</td>
+                                                        <td>4.462</td>
+                                    </tr>
+                                    <tr>
+                                        <th>Tabu Search&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>30.000</td>
+                                                        <td>30.000</td>
+                                    </tr>
+                                    <tr class="favoriteSolverBenchmark">
+                                        <th>Simulated Annealing&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>30.000</td>
+                                                        <td>30.000</td>
+                                    </tr>
+                                    <tr>
+                                        <th>BRANCH_AND_BOUND&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</th>
+                                        <td>30.000</td>
+                                                        <td>30.000</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <div class="tab-pane" id="summary_timeSpentScalability">
+                                <h3>Time spent scalability summary</h3>
+                                <p>Useful for extrapolating the scalability of construction heuristics (presuming that no other solver phases are configured).</p>
+                                <div class="benchmark-chart">
+                                    <img src="summary/timeSpentScalabilitySummary.png"/>
+                                </div>
+                            </div>
+                            <div class="tab-pane" id="summary_bestScorePerTimeSpent">
+                                <h3>Best score per time spent summary</h3>
+                                <p>Useful for visualizing trade-off between the best score versus the time spent for construction heuristics (presuming that no other solver phases are configured).</p>
+    <div class="tabbable tabs-right">
+        <ul class="nav nav-tabs">
+            <li class="active">
+                <a href="#summary_bestScorePerTimeSpent_chart_0" data-toggle="tab">Hard score</a>
+            </li>
+            <li>
+                <a href="#summary_bestScorePerTimeSpent_chart_1" data-toggle="tab">Soft score</a>
+            </li>
+        </ul>
+        <div class="tab-content">
+            <div class="tab-pane active" id="summary_bestScorePerTimeSpent_chart_0">
+                <div class="benchmark-chart">
+                    <img src="summary/bestScorePerTimeSpentSummaryLevel0.png"/>
+                </div>
+            </div>
+            <div class="tab-pane" id="summary_bestScorePerTimeSpent_chart_1">
+                <div class="benchmark-chart">
+                    <img src="summary/bestScorePerTimeSpentSummaryLevel1.png"/>
+                </div>
+            </div>
+        </div>
+    </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </section>
+
+            <section id="problemBenchmarkResult">
+                <div class="page-header">
+                    <h1>Problem benchmarks</h1>
+                </div>
+                <section id="problemBenchmark_SPC3thGrade">
+                    <h2>SPC3thGrade</h2>
+                    <p>
+                        Entity count: 283<br/>
+                        Variable count: 566<br/>
+                        Maximum value count: 37<br/>
+                        Problem scale: 157.065
+                            <br/>Time spent to load the inputSolution:&nbsp;
+                                28 ms
+                            <br/>Memory usage after loading the inputSolution (before creating the Solver): 31.659.608 bytes on average.
+                    </p>
+                        <div class="tabbable">
+                            <ul class="nav nav-tabs">
+                                    <li class="active">
+                                        <a href="#problemStatistic_SPC3thGrade_BEST_SCORE" data-toggle="tab">Best score</a>
+                                    </li>
+                            </ul>
+                            <div class="tab-content">
+                                    <div class="tab-pane active" id="problemStatistic_SPC3thGrade_BEST_SCORE">
+                                                <div class="tabbable tabs-right">
+                                                    <ul class="nav nav-tabs">
+                                                            <li class="active">
+                                                                <a href="#problemStatistic_SPC3thGrade_BEST_SCORE_0" data-toggle="tab">Hard score</a>
+                                                            </li>
+                                                            <li>
+                                                                <a href="#problemStatistic_SPC3thGrade_BEST_SCORE_1" data-toggle="tab">Soft score</a>
+                                                            </li>
+                                                    </ul>
+                                                    <div class="tab-content">
+                                                            <div class="tab-pane active" id="problemStatistic_SPC3thGrade_BEST_SCORE_0">
+                                                                <div class="benchmark-chart">
+                                                                    <img src="SPC3thGrade/SPC3thGradeBestScoreStatisticLevel0.png"/>
+                                                                </div>
+                                                            </div>
+                                                            <div class="tab-pane" id="problemStatistic_SPC3thGrade_BEST_SCORE_1">
+                                                                <div class="benchmark-chart">
+                                                                    <img src="SPC3thGrade/SPC3thGradeBestScoreStatisticLevel1.png"/>
+                                                                </div>
+                                                            </div>
+                                                    </div>
+                                                </div>
+                                            <span>CSV files per solver:</span>
+                                            <div class="btn-group download-btn-group">
+                                                <button class="btn" onclick="window.location.href='SPC3thGrade/First Fit/sub0/BEST_SCORE.csv'"><i class="icon-download"></i></button>
+                                                <button class="btn" onclick="window.location.href='SPC3thGrade/Tabu Search/sub0/BEST_SCORE.csv'"><i class="icon-download"></i></button>
+                                                <button class="btn" onclick="window.location.href='SPC3thGrade/Simulated Annealing/sub0/BEST_SCORE.csv'"><i class="icon-download"></i></button>
+                                                <button class="btn" onclick="window.location.href='SPC3thGrade/BRANCH_AND_BOUND/sub0/BEST_SCORE.csv'"><i class="icon-download"></i></button>
+                                            </div>
+                                    </div>
+                            </div>
+                        </div>
+                        <section id="singleBenchmark_SPC3thGrade_First-002D0020Fit">
+                            <h3>SPC3thGrade_First Fit</h3>
+                                    <p>Score summary not provided.</p>
+                        </section>
+                        <section id="singleBenchmark_SPC3thGrade_Tabu-002D0020Search">
+                            <h3>SPC3thGrade_Tabu Search</h3>
+                                    <p>Score summary not provided.</p>
+                        </section>
+                        <section id="singleBenchmark_SPC3thGrade_Simulated-002D0020Annealing">
+                            <h3>SPC3thGrade_Simulated Annealing</h3>
+                                    <p>Score summary not provided.</p>
+                        </section>
+                        <section id="singleBenchmark_SPC3thGrade_BRANCH_AND_BOUND">
+                            <h3>SPC3thGrade_BRANCH_AND_BOUND</h3>
+                                    <p>Score summary not provided.</p>
+                        </section>
+                </section>
+            </section>
+
+            <section id="solverBenchmarkResult">
+                <div class="page-header">
+                    <h1>Solver benchmarks</h1>
+                </div>
+                <section id="solverBenchmark_First-002D0020Fit">
+                    <h2>First Fit&nbsp;        <span class="badge">3</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</h2>
+                    <button class="btn showSolverConfiguration" data-toggle="collapse" data-target="#solverBenchmark_First-002D0020Fit_config">
+                        Show/hide Solver configuration
+                    </button>
+                    <div id="solverBenchmark_First-002D0020Fit_config" class="collapse in">
+                        <pre class="prettyprint lang-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;solver xmlns=&quot;https://www.optaplanner.org/xsd/solver&quot;&gt;
+  &lt;solutionClass&gt;org.acme.timetabling.domain.TimeTable&lt;/solutionClass&gt;
+  &lt;entityClass&gt;org.acme.timetabling.domain.Lesson&lt;/entityClass&gt;
+  &lt;scoreDirectorFactory&gt;
+    &lt;constraintProviderClass&gt;org.acme.timetabling.solver.TimeTableConstraintProvider&lt;/constraintProviderClass&gt;
+  &lt;/scoreDirectorFactory&gt;
+  &lt;termination&gt;
+    &lt;secondsSpentLimit&gt;30&lt;/secondsSpentLimit&gt;
+  &lt;/termination&gt;
+  &lt;constructionHeuristic&gt;
+    &lt;constructionHeuristicType&gt;FIRST_FIT&lt;/constructionHeuristicType&gt;
+  &lt;/constructionHeuristic&gt;
+&lt;/solver&gt;
+</pre>
+                    </div>
+                </section>
+                <section id="solverBenchmark_Tabu-002D0020Search">
+                    <h2>Tabu Search&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</h2>
+                    <button class="btn showSolverConfiguration" data-toggle="collapse" data-target="#solverBenchmark_Tabu-002D0020Search_config">
+                        Show/hide Solver configuration
+                    </button>
+                    <div id="solverBenchmark_Tabu-002D0020Search_config" class="collapse in">
+                        <pre class="prettyprint lang-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;solver xmlns=&quot;https://www.optaplanner.org/xsd/solver&quot;&gt;
+  &lt;solutionClass&gt;org.acme.timetabling.domain.TimeTable&lt;/solutionClass&gt;
+  &lt;entityClass&gt;org.acme.timetabling.domain.Lesson&lt;/entityClass&gt;
+  &lt;scoreDirectorFactory&gt;
+    &lt;constraintProviderClass&gt;org.acme.timetabling.solver.TimeTableConstraintProvider&lt;/constraintProviderClass&gt;
+  &lt;/scoreDirectorFactory&gt;
+  &lt;termination&gt;
+    &lt;secondsSpentLimit&gt;30&lt;/secondsSpentLimit&gt;
+  &lt;/termination&gt;
+  &lt;constructionHeuristic&gt;
+    &lt;constructionHeuristicType&gt;FIRST_FIT&lt;/constructionHeuristicType&gt;
+  &lt;/constructionHeuristic&gt;
+  &lt;localSearch&gt;
+    &lt;unionMoveSelector&gt;
+      &lt;changeMoveSelector/&gt;
+      &lt;swapMoveSelector/&gt;
+    &lt;/unionMoveSelector&gt;
+    &lt;acceptor&gt;
+      &lt;entityTabuSize&gt;7&lt;/entityTabuSize&gt;
+    &lt;/acceptor&gt;
+    &lt;forager&gt;
+      &lt;acceptedCountLimit&gt;1000&lt;/acceptedCountLimit&gt;
+    &lt;/forager&gt;
+  &lt;/localSearch&gt;
+&lt;/solver&gt;
+</pre>
+                    </div>
+                </section>
+                <section id="solverBenchmark_Simulated-002D0020Annealing">
+                    <h2>Simulated Annealing&nbsp;        <span class="badge badge-success">0</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</h2>
+                    <button class="btn showSolverConfiguration" data-toggle="collapse" data-target="#solverBenchmark_Simulated-002D0020Annealing_config">
+                        Show/hide Solver configuration
+                    </button>
+                    <div id="solverBenchmark_Simulated-002D0020Annealing_config" class="collapse in">
+                        <pre class="prettyprint lang-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;solver xmlns=&quot;https://www.optaplanner.org/xsd/solver&quot;&gt;
+  &lt;solutionClass&gt;org.acme.timetabling.domain.TimeTable&lt;/solutionClass&gt;
+  &lt;entityClass&gt;org.acme.timetabling.domain.Lesson&lt;/entityClass&gt;
+  &lt;scoreDirectorFactory&gt;
+    &lt;constraintProviderClass&gt;org.acme.timetabling.solver.TimeTableConstraintProvider&lt;/constraintProviderClass&gt;
+  &lt;/scoreDirectorFactory&gt;
+  &lt;termination&gt;
+    &lt;secondsSpentLimit&gt;30&lt;/secondsSpentLimit&gt;
+  &lt;/termination&gt;
+  &lt;constructionHeuristic&gt;
+    &lt;constructionHeuristicType&gt;FIRST_FIT&lt;/constructionHeuristicType&gt;
+  &lt;/constructionHeuristic&gt;
+  &lt;localSearch&gt;
+    &lt;unionMoveSelector&gt;
+      &lt;changeMoveSelector/&gt;
+      &lt;swapMoveSelector/&gt;
+    &lt;/unionMoveSelector&gt;
+    &lt;acceptor&gt;
+      &lt;simulatedAnnealingStartingTemperature&gt;0hard/400soft&lt;/simulatedAnnealingStartingTemperature&gt;
+    &lt;/acceptor&gt;
+    &lt;forager&gt;
+      &lt;acceptedCountLimit&gt;4&lt;/acceptedCountLimit&gt;
+    &lt;/forager&gt;
+  &lt;/localSearch&gt;
+&lt;/solver&gt;
+</pre>
+                    </div>
+                </section>
+                <section id="solverBenchmark_BRANCH_AND_BOUND">
+                    <h2>BRANCH_AND_BOUND&nbsp;        <span class="badge">1</span>
+
+        <span class="badge badge-warning" data-toggle="tooltip" title="Has an infeasible score">!</span>
+</h2>
+                    <button class="btn showSolverConfiguration" data-toggle="collapse" data-target="#solverBenchmark_BRANCH_AND_BOUND_config">
+                        Show/hide Solver configuration
+                    </button>
+                    <div id="solverBenchmark_BRANCH_AND_BOUND_config" class="collapse in">
+                        <pre class="prettyprint lang-xml">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;
+&lt;solver xmlns=&quot;https://www.optaplanner.org/xsd/solver&quot;&gt;
+  &lt;solutionClass&gt;org.acme.timetabling.domain.TimeTable&lt;/solutionClass&gt;
+  &lt;entityClass&gt;org.acme.timetabling.domain.Lesson&lt;/entityClass&gt;
+  &lt;scoreDirectorFactory&gt;
+    &lt;constraintProviderClass&gt;org.acme.timetabling.solver.TimeTableConstraintProvider&lt;/constraintProviderClass&gt;
+  &lt;/scoreDirectorFactory&gt;
+  &lt;termination&gt;
+    &lt;secondsSpentLimit&gt;30&lt;/secondsSpentLimit&gt;
+  &lt;/termination&gt;
+  &lt;constructionHeuristic&gt;
+    &lt;constructionHeuristicType&gt;FIRST_FIT&lt;/constructionHeuristicType&gt;
+  &lt;/constructionHeuristic&gt;
+  &lt;localSearch&gt;
+    &lt;unionMoveSelector&gt;
+      &lt;changeMoveSelector/&gt;
+      &lt;swapMoveSelector/&gt;
+    &lt;/unionMoveSelector&gt;
+    &lt;acceptor&gt;
+      &lt;lateAcceptanceSize&gt;400&lt;/lateAcceptanceSize&gt;
+    &lt;/acceptor&gt;
+    &lt;forager&gt;
+      &lt;acceptedCountLimit&gt;4&lt;/acceptedCountLimit&gt;
+    &lt;/forager&gt;
+  &lt;/localSearch&gt;
+&lt;/solver&gt;
+</pre>
+                    </div>
+                </section>
+            </section>
+
+            <section id="benchmarkInformation">
+                <div class="page-header">
+                    <h1>Benchmark information</h1>
+                </div>
+                <table class="benchmark-table table table-striped">
+                    <tr>
+                        <th>Name</th>
+                        <td>2021-12-05_190830</td>
+                    </tr>
+                    <tr>
+                        <th>Aggregation</th>
+                        <td>false</td>
+                    </tr>
+                    <tr>
+                        <th>Failure count</th>
+                        <td>0</td>
+                    </tr>
+                    <tr>
+                        <th>Starting timestamp</th>
+                        <td>5 dec. 2021 19:08:30</td>
+                    </tr>
+                    <tr>
+                        <th>Warm up time spent</th>
+                            <td>30.000 ms</td>
+                    </tr>
+                    <tr>
+                        <th>Parallel benchmark count / available processors</th>
+                            <td>1 / 12</td>
+                    </tr>
+                    <tr>
+                        <th>Benchmark time spent</th>
+                            <td>127.768 ms</td>
+                    </tr>
+                    <tr>
+                        <th>Environment mode</th>
+                        <td>REPRODUCIBLE</td>
+                    </tr>
+                    <tr>
+                        <th>Logging level org.optaplanner.core</th>
+                        <td>debug</td>
+                    </tr>
+                    <tr>
+                        <th>Logging level org.drools.core</th>
+                        <td>debug</td>
+                    </tr>
+                    <tr>
+                        <th>Solver ranking class</th>
+                        <td>
+                            <span data-toggle="tooltip" title="org.optaplanner.benchmark.impl.ranking.TotalScoreSolverRankingComparator">
+                                TotalScoreSolverRankingComparator
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>VM max memory (as in -Xmx but lower)</th>
+                            <td>1.904.214.016 bytes</td>
+                    </tr>
+                    <tr>
+                        <th>OptaPlanner version</th>
+                        <td>8.11.1.Final</td>
+                    </tr>
+                    <tr>
+                        <th>Java version</th>
+                        <td>Java 11.0.11 (Ubuntu)</td>
+                    </tr>
+                    <tr>
+                        <th>Java VM</th>
+                        <td>Java OpenJDK 64-Bit Server VM 11.0.11+9-Ubuntu-0ubuntu2.20.04 (Ubuntu)</td>
+                    </tr>
+                    <tr>
+                        <th>Operating system</th>
+                        <td>Linux amd64 5.11.0-41-generic</td>
+                    </tr>
+                    <tr>
+                        <th>Report locale</th>
+                        <td>nl_BE</td>
+                    </tr>
+                    <tr>
+                        <th>Report timezone</th>
+                        <td>Europe/Brussels</td>
+                    </tr>
+                </table>
+            </section>
+        </div>
+    </div>
+</div>
+
+<script src="twitterbootstrap/js/jquery.js"></script>
+<script src="twitterbootstrap/js/bootstrap.js"></script>
+<script src="twitterbootstrap/js/prettify.js"></script>
+<script>
+$(function () {
+    $('[data-toggle="tooltip"]').tooltip()
+})
+</script>
+</body>
+</html>
