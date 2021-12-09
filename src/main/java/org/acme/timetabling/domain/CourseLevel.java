@@ -1,6 +1,7 @@
 package org.acme.timetabling.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import org.acme.timetabling.parser.XmlDomParser;
 
 import javax.persistence.*;
@@ -9,7 +10,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Entity
-public class CourseLevel {
+public class CourseLevel extends PanacheEntityBase {
 
 
     @Id
@@ -17,16 +18,16 @@ public class CourseLevel {
     @Column(name = "COURSELEVELID")
     private Long CourseLevelId;
 
-    @OneToMany(targetEntity = LessonTask.class, mappedBy = "courseLevel")
+    @OneToMany(targetEntity = LessonTask.class, mappedBy = "courseLevel", fetch = FetchType.EAGER)
     @JsonIgnore
-    private Set<LessonTask> lessonTaskSet;
+    private List<LessonTask> lessonTaskList;
 
     @Transient
-    private transient int maxGroupSize;
+    private int maxGroupSize;
     @Transient
-    private transient Set<StudentGroup> studentGroupSet;
+    private Set<StudentGroup> studentGroupSet;
     @Transient
-    private transient List<PartitionOfStudentGroups> partitionTable;
+    private List<PartitionOfStudentGroups> partitionTable;
 
 /*    public static void main(String[] args) {
         Function<String, List> giveList = XmlDomParser.main();
@@ -48,7 +49,6 @@ public class CourseLevel {
     }*/
 
     public CourseLevel(){
-
     }
 //NO SINGLE ADDITION --> HASHTABLE CALCULATED ONLY ONCE FOR EACH CourseLEVEL?!!
 /*    public CourseLevel(Long courseLevelId, LessonTask lessonTask, StudentGroup studentGroup) {
@@ -69,16 +69,29 @@ public class CourseLevel {
     }
     */
 
-    public CourseLevel(Set<LessonTask> lessonTaskSet) {
-        this.lessonTaskSet = lessonTaskSet;
-        this.studentGroupSet = extractStudentGroupsFrom(lessonTaskSet);
+    public CourseLevel(List<LessonTask> lessonTaskList) {
+        this.lessonTaskList = lessonTaskList;
+        updateLessonTaskSet(lessonTaskList);
+    }
+
+    public void updateCourseLevel(){
+        this.studentGroupSet = extractStudentGroupsFrom(lessonTaskList);
         this.maxGroupSize = Math.max(28, Collections.max(studentGroupSet, Comparator.comparing(StudentGroup::getNumberOfStudents))
                 .getNumberOfStudents());
         this.partitionTable = generateHashPartitionTableFrom();
         this.partitionTable.add(0, generateCurrentPartition());
     }
 
-
+    public Set<StudentGroup> getStudentGroups(Integer partitionNumber, LessonTask lessonTask){
+        return this.partitionTable.get(partitionNumber)
+                .getStudentGroupsAt(this.lessonTaskList.indexOf(lessonTask))
+                .getContent();
+    }
+    private void updateLessonTaskSet(List<LessonTask> lessonTasks){
+        for (LessonTask lessonTask: lessonTasks){
+            lessonTask.setCourseLevel(this);
+        }
+    }
 
     public int getMaxGroupSize(){
         return maxGroupSize;
@@ -88,18 +101,31 @@ public class CourseLevel {
         return CourseLevelId;
     }
 
+    public void updateLessonTasks(int i){
+        PartitionOfStudentGroups partition = partitionTable.get(i);
+        int index =0;
+        for (LessonTask lessonTask: lessonTaskList){
+            lessonTask.setStudentGroups(partition.getStudentGroupsAt(index).getContent());
+            index ++;
+        }
+    }
+
     public List<PartitionOfStudentGroups> getPartitionTable() {
         return partitionTable;
     }
 
     public int getPartitionSize(){ //number of related lessonTasks
-        return this.lessonTaskSet.size();
+        return this.lessonTaskList.size();
+    }
+
+    public int numberOfPossiblePartitions(){ //number of related lessonTasks
+        return this.partitionTable.size();
     }
 
     public Set<StudentGroup> getStudentGroupSet() {
         return studentGroupSet;
     }
-    public Set<LessonTask> getLessonTaskSet(){return this.lessonTaskSet;}
+    public List<LessonTask> getLessonTaskList(){return this.lessonTaskList;}
 
     private List<PartitionOfStudentGroups> generateHashPartitionTableFrom(){
         List<StudentGroup> sortedStudentGroups = new ArrayList<>(studentGroupSet);
@@ -120,16 +146,16 @@ public class CourseLevel {
 
     private PartitionOfStudentGroups generateCurrentPartition(){
         PartitionOfStudentGroups partition = new PartitionOfStudentGroups();
-        for (LessonTask lessonTask: this.lessonTaskSet){
+        for (LessonTask lessonTask: this.lessonTaskList){
             StudentGroups studentGroups = new StudentGroups(lessonTask.getStudentGroups());
             partition.addStudentGroups(studentGroups);
         }
         return partition;
     }
 
-    private Set<StudentGroup> extractStudentGroupsFrom(Set<LessonTask> lessonTaskSet){
+    private Set<StudentGroup> extractStudentGroupsFrom(List<LessonTask> lessonTaskList){
         Set<StudentGroup> studentGroupSet = new HashSet<>();
-        for (LessonTask lessonTask: lessonTaskSet){
+        for (LessonTask lessonTask: lessonTaskList){
             studentGroupSet.addAll(lessonTask.getStudentGroups());
         }
         return studentGroupSet;

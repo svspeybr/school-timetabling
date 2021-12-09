@@ -39,7 +39,7 @@ public class LessonTask extends PanacheEntityBase {
 
     private Integer multiplicity;
 
-    @ManyToOne(targetEntity = CourseLevel.class, fetch = FetchType.EAGER)
+    @ManyToOne(targetEntity = CourseLevel.class)
     private CourseLevel courseLevel;
 
     @DeepPlanningClone
@@ -121,6 +121,16 @@ public class LessonTask extends PanacheEntityBase {
     public Set<StudentGroup> getStudentGroups() {
         return studentGroups;
     }
+    public Set<StudentGroup> getStudentGroupsFromPartition(Integer partitionNumber) {
+        if (this.courseLevel == null){
+            return studentGroups;
+        }
+        return courseLevel.getStudentGroups(partitionNumber, this);
+    }
+
+    public void setStudentGroups(Set<StudentGroup> studentGroups){
+        this.studentGroups = studentGroups;
+    }
 
     public Set<Teacher> getTaughtBy() {
         return taughtBy;
@@ -142,6 +152,14 @@ public class LessonTask extends PanacheEntityBase {
         this.couplingNumbers.add(integer);
         this.couplingNumbers.sort(Comparator.reverseOrder());
         updateCoupling();
+    }
+
+    public CourseLevel getCourseLevel() {
+        return courseLevel;
+    }
+
+    public void setCourseLevel(CourseLevel courseLevel) {
+        this.courseLevel = courseLevel;
     }
 
     //Not necessary

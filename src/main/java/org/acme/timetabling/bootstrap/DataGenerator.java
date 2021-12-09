@@ -1,7 +1,10 @@
 package org.acme.timetabling.bootstrap;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.event.Observes;
@@ -38,7 +41,18 @@ public class DataGenerator {
         StudentGroup.persist(giveList.apply("st"));
         //LESSONTASKS
         List<LessonTask> lessonTaskList = giveList.apply("ta");
+
+        //ADD COURSE LEVEL FOR HISTORY COURSES
+        List<LessonTask> historyTasks5 = lessonTaskList.stream().filter(lessonTask -> lessonTask.getSubject().equals("GE") &&
+                new ArrayList<>(lessonTask.getStudentGroups()).get(0).getYear().equals(5)).collect(Collectors.toList());
+        List<LessonTask> historyTasks6 = lessonTaskList.stream().filter(lessonTask -> lessonTask.getSubject().equals("GE") &&
+                new ArrayList<>(lessonTask.getStudentGroups()).get(0).getYear().equals(6)).collect(Collectors.toList());
+        CourseLevel histCourseLevel5 = new CourseLevel(new ArrayList<>(historyTasks5));
+        CourseLevel histCourseLevel6 = new CourseLevel(new ArrayList<>(historyTasks6));
+        CourseLevel.persist(histCourseLevel5);
+        CourseLevel.persist(histCourseLevel6);
         LessonTask lessonTaskWGS = lessonTaskList.stream().filter(leta-> leta.getTaskNumber() == 970).findFirst().get();
+        //ADD COUPLING
         lessonTaskWGS.addCoupling(2);
         lessonTaskWGS.addCoupling(3);
         LessonTask.persist(lessonTaskList);

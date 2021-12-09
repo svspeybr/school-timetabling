@@ -37,6 +37,9 @@
                 <variableNameInclude>timeslot</variableNameInclude>
                 <variableNameInclude>room</variableNameInclude>
             </swapMoveSelector>
+            <moveListFactory>
+                <moveListFactoryClass>org.acme.timetabling.domain.solver.LessonAssignmentPillarChangeMoveFactory</moveListFactoryClass>
+            </moveListFactory>
         </unionMoveSelector>
         <acceptor>
             <simulatedAnnealingStartingTemperature>0hard/400soft</simulatedAnnealingStartingTemperature>

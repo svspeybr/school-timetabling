@@ -1,6 +1,7 @@
 package org.acme.timetabling.domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
+import org.acme.timetabling.rest.TimeTableResource;
 import org.optaplanner.core.api.domain.solution.PlanningEntityCollectionProperty;
 import org.optaplanner.core.api.domain.solution.PlanningScore;
 import org.optaplanner.core.api.domain.solution.PlanningSolution;
@@ -25,9 +26,6 @@ public class TimeTable {
     @ValueRangeProvider(id= "roomRange")
     private List<Room> roomList;
 
-    @ProblemFactCollectionProperty
-    @ValueRangeProvider(id = "studentGroupRange")
-    private List<StudentGroup> studentGroupList;
 
     //VARIABLES
     @PlanningEntityCollectionProperty
@@ -38,6 +36,9 @@ public class TimeTable {
 
     //PROBLEM FACTS
     @ProblemFactCollectionProperty
+    private List<StudentGroup> studentGroupList;
+
+    @ProblemFactCollectionProperty
     private List<Teacher> teacherList;
 
     @ProblemFactCollectionProperty
@@ -45,6 +46,9 @@ public class TimeTable {
 
     @ProblemFactCollectionProperty
     private List<LessonTask> lessonTaskList;
+
+    @ProblemFactCollectionProperty
+    private  List<CourseLevel> courseLevelList;
 
     //SCORE
     @PlanningScore
@@ -63,6 +67,7 @@ public class TimeTable {
                      List<Room> roomList,
                      List<Lesson> lessonList,
                      List<LessonTask> lessonTaskList,
+                     List<CourseLevel> courseLevelList,
                      List<StudentGroup> studentGroupList,
                      List<Teacher> teacherList,
                      List<Preference> preferenceList)  {
@@ -70,6 +75,7 @@ public class TimeTable {
         this.roomList = roomList;
         this.lessonList = lessonList;
         this.lessonTaskList = lessonTaskList;
+        this.courseLevelList = courseLevelList;
         this.lessonAssignmentList = generateAssignmentFromLessonTask(lessonTaskList);
         this.studentGroupList = studentGroupList;
         this.teacherList = teacherList;
@@ -77,13 +83,18 @@ public class TimeTable {
     }
 
     // ************************************************************************
-    // Getters and setters
+    // Getters
     // ************************************************************************
 
 
     public List<LessonAssignment> getLessonAssignmentList() {return lessonAssignmentList;}
+
     public List<LessonTask> getLessonTaskList() {
         return lessonTaskList;
+    }
+
+    public List<CourseLevel> getCourseLevelList() {
+        return courseLevelList;
     }
 
     public List<Timeslot> getTimeslotList() {
@@ -118,6 +129,10 @@ public class TimeTable {
         return solverStatus;
     }
 
+    // ************************************************************************
+    // SETTERS
+    // ************************************************************************
+
     public void setScore(HardSoftScore score) {
         this.score = score;
     }
@@ -126,20 +141,19 @@ public class TimeTable {
         this.solverStatus = solverStatus;
     }
 
+    // ADVANCED (?)
+
     private List<LessonAssignment> generateAssignmentFromLessonTask(List<LessonTask> lessonTaskList){
         List<LessonAssignment> lessonAssignmentList = new ArrayList<>();
         for (LessonTask lessonTask:lessonTaskList){
-            for (StudentGroup studentGroup: lessonTask.getStudentGroups()){
                 for (Lesson lesson: lessonTask.getLessonsOfTaskList()) {
                     LessonAssignment lessonAssignment = new LessonAssignment(lesson.getLessonId(),
                             lessonTask,
                             lesson.getRoom(),
                             lesson.getTimeslot(),
-                            studentGroup,
                             lesson.isPinned());
                     lessonAssignmentList.add(lessonAssignment);
                 }
-            }
         }
         return lessonAssignmentList;
     }

@@ -36,6 +36,7 @@ public class XmlDataGenerator {
                 Room.listAll(),
                 Lesson.listAll(),
                 LessonTask.listAll(),
+                CourseLevel.listAll(),
                 StudentGroup.listAll(),
                 Teacher.listAll(),
                 Preference.listAll());

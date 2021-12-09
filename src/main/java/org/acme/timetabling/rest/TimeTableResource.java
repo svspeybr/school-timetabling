@@ -23,8 +23,7 @@ import org.optaplanner.core.config.solver.SolverConfig;
 import org.optaplanner.core.config.solver.SolverManagerConfig;
 
 import java.io.File;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 @Path("/timeTable")
 @Produces(MediaType.APPLICATION_JSON)
@@ -58,7 +57,6 @@ public class TimeTableResource {
         timeTable.setSolverStatus(solverStatus);
        return timeTable;
     }
-
     @POST
     @Path("/solve")
     public void solve() {
@@ -73,14 +71,16 @@ public class TimeTableResource {
         solverManager.terminateEarly(SINGLETON_TIME_TABLE_ID);
     }
 
-
     @Transactional
-    protected TimeTable findById(Long id) {
+    public TimeTable findById(Long id) {
+        List<CourseLevel> courseLevelList = CourseLevel.listAll();
+        courseLevelList.forEach(CourseLevel::updateCourseLevel);
         return new TimeTable(
                 Timeslot.listAll(Sort.by("position")),
                 Room.listAll(),
                 Lesson.listAll(),
                 LessonTask.listAll(),
+                courseLevelList,
                 StudentGroup.listAll(),
                 Teacher.listAll(),
                 Preference.listAll());
@@ -88,15 +88,31 @@ public class TimeTableResource {
 
     @Transactional
     protected void save(TimeTable timeTable) {
-        lessonRepository.deleteAllGroups();
-        Set<String> values = new HashSet<>();
+        /*lessonRepository.deleteAllGroups();*/
+        /*Set<String> valuesForQueryString = new HashSet<>();*/
+        List<CourseLevel> courseLevelList = timeTable.getCourseLevelList();
+        Map<CourseLevel, Integer> hashCourseLevel = new HashMap<>(courseLevelList.size());
         for (LessonAssignment lessonAssignment: timeTable.getLessonAssignmentList()) {
             Lesson attachedLesson = Lesson.findById(lessonAssignment.getLessonId());
-            values.add("("+ lessonAssignment.getTaskNumber().toString()+ ", '" + lessonAssignment.getStudentGroup().getGroupName()+"')");
+
+         /*   for (StudentGroup studentGroup: lessonAssignment.getStudentGroups()){
+            valuesForQueryString.add("("+ lessonAssignment.getTaskNumber().toString()+ ", '" + studentGroup.getGroupName()+"')");
+            }*/
             attachedLesson.setTimeslot(lessonAssignment.getTimeslot());
             attachedLesson.setRoom(lessonAssignment.getRoom());
+            CourseLevel courseLevel = lessonAssignment.getLessonTask().getCourseLevel();
+            if (courseLevel != null && ! hashCourseLevel.containsKey(courseLevel)){
+                hashCourseLevel.put(courseLevel, lessonAssignment.getPartitionNumber());
+            }
         }
-        lessonRepository.addGroups(values);
+
+        for (CourseLevel courseLevel:courseLevelList){
+            Integer partitionNumber = hashCourseLevel.get(courseLevel);
+            if (partitionNumber != null){
+                courseLevel.updateLessonTasks(partitionNumber);
+            }
+        }
+        /*lessonRepository.addGroups(valuesForQueryString);*/
     }
 
 

@@ -228,10 +228,12 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
     private Constraint studentGroupConflict(ConstraintFactory constraintFactory){
         return constraintFactory.from(LessonAssignment.class)
                 .join(LessonAssignment.class,
-                        Joiners.equal(LessonAssignment::getStudentGroup),
                         Joiners.equal(LessonAssignment::getTimeslot),
                         Joiners.lessThan(LessonAssignment::getLessonId)
-                )
+                ).filter((lessonAssignment, lessonAssignment2) -> {
+                    HashSet<StudentGroup> intersection = new HashSet<>(lessonAssignment2.getStudentGroups());
+                    intersection.retainAll(lessonAssignment.getStudentGroups());
+                    return ! intersection.isEmpty();})
                 .penalize("Student group conflict", HardSoftScore.ONE_HARD);
     }
 
