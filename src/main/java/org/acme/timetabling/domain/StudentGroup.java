@@ -25,6 +25,12 @@ public class StudentGroup extends PanacheEntityBase implements Comparable<Studen
 
     private Integer numberOfStudents;
 
+    @ManyToMany(targetEntity = Teacher.class,
+            fetch = FetchType.EAGER)
+    @JsonIgnore
+    private Set<Teacher> classTeachers = new HashSet<>();
+
+    //To do: configuring it never to be null
     private Integer year;
 
     public StudentGroup() {}
@@ -59,6 +65,19 @@ public class StudentGroup extends PanacheEntityBase implements Comparable<Studen
 
     public void setYear(Integer year) {
         this.year = year;
+    }
+
+    public Set<Teacher> getClassTeachers() {
+        return classTeachers;
+    }
+
+    public void addClassTeacher(Teacher teacher){
+        classTeachers.add(teacher);
+        teacher.addStudentGroup(this);
+    }
+    public void removeClassTeacher(Teacher teacher){
+        classTeachers.remove(teacher);
+        teacher.removeStudentGroup(this);
     }
 
     public static List<StudentGroup> findByGroupName(String groupName) {

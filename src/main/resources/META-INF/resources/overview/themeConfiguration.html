@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <title>ThemeConfiguration - School Timetabling</title>
+  <link rel="icon" href="../overviewImages/logoJette.png" type="image/icon type">
+  <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/webjars/font-awesome/css/all.css" />
+</head>
+<body>
+
+<div class="container">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">
+      <img src="../optaPlannerLogo200px.png" alt="OptaPlanner logo">
+    </a>
+  </nav>
+  <div class="sticky-top d-flex justify-content-center align-items-center" aria-live="polite" aria-atomic="true">
+    <div id="notificationPanel" style="position: absolute; top: .5rem;"></div>
+  </div>
+  <h2> thema configuratie </h2>
+
+  <div style="margin-bottom: .5rem">
+      <table class="center">
+        <tr>
+          <td style = "padding: 0 2vw">
+            <div class="form-group">
+              <label for="themeName">Voer thema in: </label>
+                <div>
+                  <input style = "width: 15vw" type="text" id="themeName"/>
+                </div>
+            </div>
+         </td>
+          <td style="padding: 0 2vw" rowspan = "2" align = "right">
+              <div class="form-group" >
+                <label for="theme_possibleLessonTasks">Vak: </label>
+                <input style = "width: 10vw" type="text" id="subject"/>
+                <select style = "width: 30vw" multiple class="form-control" id="theme_possibleLessonTasks" required>
+                 <!--Added by themeConfiguration.js -->
+                </select>
+              </div>
+          </td>
+        </tr>
+
+       <tr>
+          <td style = "padding: 0 2vw">
+            <div class="form-group">
+              <label for="theme_possibleLessonTasks"> Aantal lessen: </label>
+                <div>
+                  <input type="number" id="theme_lessonMultiplicity" required/>
+                </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+      <!--OVERVIEW TABLE -->
+    <table class="table table-striped" id="theme_timeslotMultiplicity">
+      <!-- Filled in by themeConfiguration.js -->
+    </table>
+
+    <div>
+      <button type="button" class="btn btn-primary" id="submitThemeButton">
+        <span class="fas fa-plus"></span> Bevestig
+      </button>
+    </div>
+
+    <!--OVERVIEW UNASSIGNED LESSONS-->
+  </div>
+</div>
+
+<script src="/webjars/jquery/jquery.min.js"></script>
+<script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script src="/webjars/momentjs/min/moment.min.js"></script>
+<script src="../overviewApp/themeConfiguration.js"></script>
+</body>
+
+</html>

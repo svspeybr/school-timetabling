@@ -6,22 +6,32 @@ import org.optaplanner.core.api.score.stream.*;
 
 import static org.optaplanner.core.api.score.stream.Joiners.filtering;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 //ConstraintFactory.from(...clas)-> gets lists from the planning problem --> planning entities and problem facts
 
 public class TimeTableConstraintProvider implements ConstraintProvider {
     @Override
     public Constraint[] defineConstraints(ConstraintFactory constraintFactory) {
+        //TO DO: PROVIDE SETTING CLASS WITH SUBCLASSES:
+        // 1) DEFAULT SETTINGS
+        // 2) SEPARATION SETTINGS TO PASS TO CONSTRAINT
+        //REMARK: THE SETTING ARE FETCHED DURING GENERATING TIMETABLE AND
+        // + DEFAULT SETTING ONLY CHANGE WHEN CALLED FROM (TO DO) DEFAULT SETTING RESOURCE
+        // + SEPARATION SETTING ONLY WHEN 'PLANNING FACTS (timeslots/days/teacher(preferences))' ARE ADDED.
+        //TO DO: PASS THOSE SETTINGS TO CONSTRAINT GENERATING FUNCTIONS:
         return new Constraint[]{
                roomConflict(constraintFactory),
+                missesHalfDays(constraintFactory, 2 * 5 - 1, 5 ),
 /*                 lessonTaskInternalConflict(constraintFactory),*/
+                themeConflict(constraintFactory),
+                classTeacherConflict(constraintFactory),
+                scienceCourseConflict(constraintFactory),
                 teacherConflict(constraintFactory),
                 studentGroupConflict(constraintFactory),
                 teacherTimeEfficiency(constraintFactory),
                lessonTaskOnSameDayConflict(constraintFactory),
-/*                 teacherPreferenceConflict(constraintFactory),*/
+                 teacherPreferenceConflict(constraintFactory),
                 /*couplingConflict(constraintFactory),*/
                 lastResortTimeslotConflict(constraintFactory)
         };
@@ -101,6 +111,40 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 .penalize("lessonTask internal conflict",
                         HardSoftScore.ONE_HARD,
                         LessonTask::internalTimslotOverlaps);
+    }
+
+    private Constraint themeConflict(ConstraintFactory constraintFactory){
+        return constraintFactory.from(LessonAssignment.class)
+                .join(ThemeCollection.class, filtering((lesa, theme)-> theme.getLessonIds().contains(lesa.getLessonId())))
+                .groupBy((lesa,theme)-> lesa.getTimeslot(), (lesa, theme)->theme, ConstraintCollectors.countDistinct((lesa, theme)->lesa))
+                .penalize("themeConflict", HardSoftScore.ONE_HARD, (ts, theme, count) -> positive(theme.copy(count) - theme.getMultiplicity(ts)));
+    }
+
+
+    private Constraint classTeacherConflict(ConstraintFactory constraintFactory){
+        return constraintFactory.from(StudentGroup.class)
+                .join(Teacher.class, filtering((st,te ) -> st.getClassTeachers().contains(te)))
+                .join(LessonAssignment.class, filtering((st, te, lesa)-> lesa.getDayOfWeek().equals("FRIDAY")
+                                                                            && lesa.getTaughtBy().contains(te)
+                                                                            && lesa.getStudentGroups().contains(st)
+                                                                            ))
+                .groupBy(ConstraintCollectors.countDistinct((studentGroup, teacher,lessonAssignment ) -> studentGroup))
+                .join(constraintFactory.from(StudentGroup.class).groupBy(ConstraintCollectors.count()))
+                .penalize("classTeacher on Friday",
+                        HardSoftScore.ONE_HARD, ((integer, integer2) -> integer2 - integer));
+    }
+
+    private Constraint scienceCourseConflict(ConstraintFactory constraintFactory){
+        return constraintFactory.from(LessonAssignment.class)
+                .join(SubjectCollection.class, filtering((lesa, subj)-> subj.getSubjects().contains(lesa.getSubject())))
+                .groupBy((lesa, subj) -> subj,(lesa, subj)-> lesa.getTimeslot(), ConstraintCollectors.toList((lesa, subj)-> lesa))
+                .penalize("scienceCourseConflict", HardSoftScore.ONE_HARD, (subj, ts, list)-> {
+                if (list.size() > subj.getMaxAssignmentsOnSameSlot()){
+                    return 10;
+                }
+                    return 0;
+                });
+
     }
 
 
@@ -202,7 +246,37 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 .groupBy( (lessonTask, lessonAssignment) -> lessonTask, ConstraintCollectors.toList((lessonTask, lessonAssignment)-> lessonAssignment))
                 .penalize("exceedMaxLessonsOnSameDay conflict",
                         HardSoftScore.ONE_HARD,
-                        LessonTask::exceedMaxLessonsOnSameDayInt);
+                        (lessonTask, lessonAssignments) -> {
+                            Integer exceedNumber = 0;
+                            // To be taken from teacher/preferences
+                            int allowedNumberOfDays = extractAllowedNumberOfDays(lessonTask);
+                            List<List<Integer>> numberOfLessons = getTimeslotsPerDay(lessonAssignments);
+                            int dayIndex = 0;
+                            int lessonsLeft = lessonTask.getMultiplicity();
+                            List<Integer> timeslotIndexOnDay;
+                            for (Integer blockSize : lessonTask.getCouplingNumbers()) {
+                                timeslotIndexOnDay = numberOfLessons.get(dayIndex);
+                                exceedNumber += 6 * Math.abs(blockSize - timeslotIndexOnDay.size());
+                                lessonsLeft -= blockSize;
+                                exceedNumber += numberOfGaps(timeslotIndexOnDay);
+                                dayIndex += 1;
+                            }
+                            // TO DO: CHECK WHEN 5 (= allowedNumberOfdays) BLOCKS ARE CHOSEN, NO LESSONS ARE LEFT
+                            // ONE BLOCK A DAY
+                            if (lessonsLeft > 0) {
+                                int daysLeftToDivide = (allowedNumberOfDays - lessonTask.getCouplingNumbers().size());
+                                int remainderOfDays = lessonsLeft % daysLeftToDivide;
+
+                                Integer mean = (int) Math.floor((float) lessonsLeft / daysLeftToDivide);
+
+                                for (int i = dayIndex; i < 5; i++) {
+
+                                    exceedNumber += Math.abs( numberOfLessons.get(i).size() - mean - sign(remainderOfDays));
+                                    remainderOfDays -= 1;
+                                }
+                            }
+                            return Math.max(exceedNumber, 0);
+                        });
     }
 
     private Constraint roomConflict(ConstraintFactory constraintFactory) {
@@ -237,13 +311,42 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 .penalize("Student group conflict", HardSoftScore.ONE_HARD);
     }
 
+
+    private Constraint missesHalfDays(ConstraintFactory constraintFactory, int maxNumbHalfDays, int maxDays) {
+        return constraintFactory.from(LessonAssignment.class)
+                .join(Teacher.class, filtering((lesa, teach)-> lesa.getTaughtBy().contains(teach)))
+                .groupBy((lesa, teach) -> teach, ConstraintCollectors.toSet((lesa, teach)-> lesa.getHalfDay()))
+                .penalize("Missing half Days", HardSoftScore.ONE_HARD, (teach, setHalfDays) -> {
+                    int penalizeScore = 0;
+                    Set<String> halfDaysTotalOccupied = new HashSet<>(maxNumbHalfDays);
+                    Set<String> daysOccupied = new HashSet<>(7);
+                    for (String halfDay: setHalfDays){
+                        if (halfDay.length() == 2){ // half a day without number index --> both halfdays are occupied
+                            halfDaysTotalOccupied.add(halfDay + "0");
+                            halfDaysTotalOccupied.add(halfDay + "1");
+                        } else {
+                            halfDaysTotalOccupied.add(halfDay);
+                        }
+                        daysOccupied.add(halfDay.substring(0, 2));
+                    }
+                    // IF TOO FEW HALFDAYS
+                    if (maxNumbHalfDays - halfDaysTotalOccupied.size() < (teach.rightToHalfDays() - teach.getFirstOrLastHours() )){
+                       penalizeScore += 10;
+                    }
+
+                    //IF TEACHER HAS RIGHT TO >=4 HALFDAYS --> RIGHT TO FULL DAY
+                    if (maxDays - daysOccupied.size() <= 0 && teach.rightToHalfDays() > 3){
+                        penalizeScore += 10;
+                    }
+                    return penalizeScore;
+                });
+    }
+
     private Constraint teacherPreferenceConflict(ConstraintFactory constraintFactory) {
-        return constraintFactory.from(LessonTask.class)
-                .join(Preference.class, filtering((lessonTask, preference) ->
-                        lessonTask.getTaughtBy().contains(preference.getTeacher())))
-                .join(LessonAssignment.class, filtering ((lessonTask, preference, lessonAssignment)->
-                        lessonAssignment.getLessonTask().equals(lessonTask) &&
-                                lessonAssignment.getTimeslot().equals(preference.getTimeslot())))
+        return constraintFactory.from(LessonAssignment.class)
+                .join(Preference.class,
+                        Joiners.equal(LessonAssignment::getTimeslot, Preference::getTimeslot),
+                        filtering((lessonAssignment, preference)->lessonAssignment.getTaughtBy().contains(preference.getTeacher())))
                 .penalize("Teacher preference conflict", HardSoftScore.ONE_HARD);
     }
 
@@ -261,6 +364,75 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                     return ! intersection.isEmpty() && lesa1.getTimeslot().isConsecutiveTo(lesa2.getTimeslot());
                 })
                 .reward("Teacher time efficiency", HardSoftScore.ONE_SOFT);
+    }
+
+
+    //**********************************************
+    // HELP FUNCTIONS
+    //**********************************************
+
+    //SEPARATION CONDITIONS
+
+    // DEFAULT SETTING MAXTEACHING DAYS
+    private List<List<Integer>> getTimeslotsPerDay(List<LessonAssignment> lesList) {
+        List<List<Integer>> numberOfLessons = new ArrayList<>(5);
+        for (int i =0; i< 5; i++){
+            //Max 8 -> 10 lessonslosts? on same day
+            numberOfLessons.add(new ArrayList<>(10));
+        }
+        for (LessonAssignment lessonAssignment: lesList) {
+            Timeslot timeslot = lessonAssignment.getTimeslot();
+            if (! (timeslot == null)) {
+                int index = timeslot.getDayOfWeek().getValue() - 1;
+                numberOfLessons.get(index).add(timeslot.getPosition());
+            }
+        }
+
+        numberOfLessons.sort(Comparator.comparing(List<Integer>::size).reversed());
+        return numberOfLessons;
+    }
+
+    private int numberOfGaps(List<Integer> tsIndexList) {
+        int length = tsIndexList.size();
+        if (length <= 1){
+            return 0;
+        }
+        Collections.sort(tsIndexList);
+        return tsIndexList.get(length -1)- tsIndexList.get(0) + 1 - length;
+    }
+
+    private static int sign(int numb){
+        if (numb > 0) {
+            return 1;
+        }
+        return 0;
+    }
+
+    private static int positive(int numb){
+        if (numb > 0) {
+            return numb;
+        }
+        return 0;
+    }
+
+    private int extractAllowedNumberOfDays(LessonTask lessonTask){
+        Set<Teacher> teachers = lessonTask.getTaughtBy();
+        int allowedNumberOfDays = 7;
+        int temp;
+        for (Teacher teacher: teachers){
+            temp = teacher.getNumberOfTeachingDays();
+            if (temp < 0){
+                temp = -temp;
+                if (teacher.rightToHalfDays() > 3){
+                    temp -= 1;
+                }
+            }
+            if (temp < allowedNumberOfDays){
+                allowedNumberOfDays = temp;
+            }
+        }
+
+        return allowedNumberOfDays;
     }
 
 }

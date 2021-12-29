@@ -16,7 +16,7 @@ public class CourseLevel extends PanacheEntityBase {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "COURSELEVELID")
-    private Long CourseLevelId;
+    private Long courseLevelId;
 
     @OneToMany(targetEntity = LessonTask.class, mappedBy = "courseLevel", fetch = FetchType.EAGER)
     @JsonIgnore
@@ -98,7 +98,7 @@ public class CourseLevel extends PanacheEntityBase {
     }
 
     public Long getCourseLevelId() {
-        return CourseLevelId;
+        return courseLevelId;
     }
 
     public void updateLessonTasks(int i){
@@ -109,6 +109,7 @@ public class CourseLevel extends PanacheEntityBase {
             index ++;
         }
     }
+
 
     public List<PartitionOfStudentGroups> getPartitionTable() {
         return partitionTable;

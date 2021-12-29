@@ -16,13 +16,14 @@ public class LessonAssignment {
 
     Long lessonId;
     LessonTask lessonTask;
+    String subject;
 
     @PlanningVariable(valueRangeProviderRefs = "roomRange")
     Room room;
     @PlanningVariable(valueRangeProviderRefs = "timeslotRange")
     Timeslot timeslot;
     @PlanningVariable(valueRangeProviderRefs = "studentGroupPartitionNumberRange")
-    Integer partitionNumber =0;
+    Integer partitionNumber = 0;
 
     private Boolean pinned= false;
 
@@ -48,11 +49,13 @@ public class LessonAssignment {
 
     public LessonAssignment(Long lessonId,
                             LessonTask lessonTask,
+                            String subject,
                             Room room,
                             Timeslot timeslot,
                             Boolean pinned) {
         this.lessonId = lessonId;
         this.lessonTask = lessonTask;
+        this.subject = subject;
         this.room = room;
         this.timeslot = timeslot;
         this.pinned = pinned;
@@ -66,6 +69,10 @@ public class LessonAssignment {
             to = courseLevel.numberOfPossiblePartitions();
         }
         return ValueRangeFactory.createIntValueRange(0, to, 1);
+    }
+
+    public String getSubject() {
+        return subject;
     }
 
     public Integer getTaskNumber() {return lessonTask.getTaskNumber();}
@@ -108,6 +115,28 @@ public class LessonAssignment {
         this.timeslot = timeslot;
     }
 
+    public String getDayOfWeek(){
+        if (timeslot != null){
+            return timeslot.getDayOfWeek().toString();
+        }
+        return "NA";
+    }
+
+    public String getHalfDay(){
+        if (timeslot != null) {
+            String day = timeslot.getDayOfWeek().toString().substring(0, 2);
+            String index = "0"; //ONLY FORENOON
+            if (timeslot.inAfternoon()) {
+                index = "1"; //index =1 -> ONLY AFTENOON
+                if (timeslot.inForenoon()) {
+                    index = ""; //BOTH --> index --> nothing
+                }
+            }
+            return day + index;
+        }
+        return null;
+    }
+
 
       /*Placed on last resort */
     public Boolean isOnLastResortTimeslot() {
@@ -115,5 +144,9 @@ public class LessonAssignment {
             return false;
         }
         return this.timeslot.isLastResort();
+    }
+    @Override
+    public String toString() {
+        return "les" + "("+ lessonTask.getTaskNumber() +"-" +timeslot.toString() +")";
     }
 }

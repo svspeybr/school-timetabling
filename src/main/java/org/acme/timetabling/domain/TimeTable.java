@@ -1,7 +1,6 @@
 package org.acme.timetabling.domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import org.acme.timetabling.rest.TimeTableResource;
 import org.optaplanner.core.api.domain.solution.PlanningEntityCollectionProperty;
 import org.optaplanner.core.api.domain.solution.PlanningScore;
 import org.optaplanner.core.api.domain.solution.PlanningSolution;
@@ -50,6 +49,12 @@ public class TimeTable {
     @ProblemFactCollectionProperty
     private  List<CourseLevel> courseLevelList;
 
+    @ProblemFactCollectionProperty
+    private  List<SubjectCollection> subjectCollectionList;
+
+    @ProblemFactCollectionProperty
+    private List<ThemeCollection> themeCollectionList;
+
     //SCORE
     @PlanningScore
     private HardSoftScore score;
@@ -70,7 +75,9 @@ public class TimeTable {
                      List<CourseLevel> courseLevelList,
                      List<StudentGroup> studentGroupList,
                      List<Teacher> teacherList,
-                     List<Preference> preferenceList)  {
+                     List<Preference> preferenceList,
+                     List<SubjectCollection> subjectCollectionList,
+                     List<ThemeCollection> themeCollectionList) {
         this.timeslotList = timeslotList;
         this.roomList = roomList;
         this.lessonList = lessonList;
@@ -80,6 +87,8 @@ public class TimeTable {
         this.studentGroupList = studentGroupList;
         this.teacherList = teacherList;
         this.preferenceList = preferenceList;
+        this.subjectCollectionList = subjectCollectionList;
+        this.themeCollectionList = themeCollectionList;
     }
 
     // ************************************************************************
@@ -88,6 +97,14 @@ public class TimeTable {
 
 
     public List<LessonAssignment> getLessonAssignmentList() {return lessonAssignmentList;}
+
+    public List<SubjectCollection> getSubjectCollectionList() {
+        return subjectCollectionList;
+    }
+
+    public List<ThemeCollection> getThemeCollectionList() {
+        return themeCollectionList;
+    }
 
     public List<LessonTask> getLessonTaskList() {
         return lessonTaskList;
@@ -149,6 +166,7 @@ public class TimeTable {
                 for (Lesson lesson: lessonTask.getLessonsOfTaskList()) {
                     LessonAssignment lessonAssignment = new LessonAssignment(lesson.getLessonId(),
                             lessonTask,
+                            lesson.getSubject(),
                             lesson.getRoom(),
                             lesson.getTimeslot(),
                             lesson.isPinned());

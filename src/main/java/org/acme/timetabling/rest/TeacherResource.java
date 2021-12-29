@@ -1,5 +1,6 @@
 package org.acme.timetabling.rest;
 
+import org.acme.timetabling.domain.DefaultSettings;
 import org.acme.timetabling.domain.Teacher;
 import org.acme.timetabling.domain.Timeslot;
 
@@ -24,12 +25,22 @@ public class TeacherResource {
     @Path("/{acronym}")
     public Teacher get(@PathParam("acronym") String acronym) {
         List<Teacher> teacherList = Teacher.findByAcronym(acronym);
-        if (teacherList.isEmpty()) {
+        if (teacherList.isEmpty()) { //necessary????
+            DefaultSettings ds = DefaultSettings.findById(1L);
             Teacher newTeacher = new Teacher(acronym);
             add(newTeacher);
+            newTeacher.updateDependsFromLeTa(ds);
+            newTeacher.setFirstOrLastHours(0);
             return newTeacher;
         }
         return teacherList.get(0);
+    }
+
+    @GET
+    @Path("rightToHalfDays/{acronym}")
+    public Integer getHalfDays(@PathParam("acronym") String acronym) {
+        Teacher teacher = Teacher.findById(acronym);
+        return teacher.rightToHalfDays();
     }
 
     @POST

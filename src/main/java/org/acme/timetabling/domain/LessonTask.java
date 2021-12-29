@@ -1,24 +1,16 @@
 package org.acme.timetabling.domain;
 
 import com.fasterxml.jackson.annotation.JsonIdentityInfo;
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
-import io.netty.util.internal.IntegerHolder;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
-import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.solution.cloner.DeepPlanningClone;
-import org.optaplanner.core.api.domain.variable.InverseRelationShadowVariable;
-
-import org.acme.timetabling.domain.Timeslot;
-import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 import javax.persistence.*;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Entity
 @XStreamAlias("LessonTask")
@@ -40,6 +32,9 @@ public class LessonTask extends PanacheEntityBase {
     private Integer multiplicity;
 
     @ManyToOne(targetEntity = CourseLevel.class)
+    @JsonIdentityInfo(
+            generator = ObjectIdGenerators.PropertyGenerator.class,
+            property = "courseLevelId")
     private CourseLevel courseLevel;
 
     @DeepPlanningClone
@@ -48,6 +43,7 @@ public class LessonTask extends PanacheEntityBase {
     private Set<Lesson> lessonsOfTaskList;
     //Not necessary
     private Boolean coupled = false;
+    private Boolean teachingTask = true;
     //From Large to small
     @ElementCollection(fetch = FetchType.EAGER)
     //Fetchmode Join?
@@ -138,6 +134,14 @@ public class LessonTask extends PanacheEntityBase {
 
     public String getSubject() {
         return subject;
+    }
+
+    public Boolean isATeachingTask(){
+        return teachingTask;
+    }
+
+    public void setTeachingTask(Boolean bool){
+        teachingTask = bool;
     }
 
     public void setSubject(String subject) {
@@ -240,33 +244,9 @@ public class LessonTask extends PanacheEntityBase {
 
     //SEPARATION CONDITIONS
 
-    // DEFAULT SETTING MAXTEACHING DAYS
-    private List<List<Integer>> getTimeslotsPerDay(List<LessonAssignment> lesList) {
-        List<List<Integer>> numberOfLessons = new ArrayList<>(5);
-        for (int i =0; i< 5; i++){
-            //Max 8 -> 10 lessonslosts? on same day
-            numberOfLessons.add(new ArrayList<>(10));
-        }
-        for (LessonAssignment lessonAssignment: lesList) {
-            Timeslot timeslot = lessonAssignment.getTimeslot();
-            if (! (timeslot == null)) {
-                int index = timeslot.getDayOfWeek().getValue() - 1;
-                numberOfLessons.get(index).add(timeslot.getPosition());
-            }
-        }
 
-        numberOfLessons.sort(Comparator.comparing(List<Integer>::size).reversed());
-        return numberOfLessons;
-    }
 
-    private int numberOfGaps(List<Integer> tsIndexList) {
-        int length = tsIndexList.size();
-        if (length <= 1){
-            return 0;
-        }
-        Collections.sort(tsIndexList);
-        return tsIndexList.get(length -1)- tsIndexList.get(0) + 1 - length;
-    }
+
 
 /*    public Boolean exceedMaxLessonsOnSameDay() {
         List<Integer> numberOfLessons = new ArrayList<>();
@@ -292,42 +272,7 @@ public class LessonTask extends PanacheEntityBase {
     return exceedingTimes > 0;
     }*/
     // DEFAULT SETTING MAXTEACHING DAYS
-    public int exceedMaxLessonsOnSameDayInt(List<LessonAssignment> lesList) {
-        Integer exceedNumber = 0;
-        // To be taken from teacher/preferences
-        int allowedNumberOfDays = 5;
-        List<List<Integer>> numberOfLessons = this.getTimeslotsPerDay(lesList);
-        int dayIndex = 0;
-        int lessonsLeft = this.multiplicity;
-        List<Integer> timeslotIndexOnDay;
-        for (Integer blockSize : this.couplingNumbers) {
-            timeslotIndexOnDay = numberOfLessons.get(dayIndex);
-            exceedNumber += 6 * Math.abs(blockSize - timeslotIndexOnDay.size());
-            lessonsLeft -= blockSize;
-            exceedNumber += numberOfGaps(timeslotIndexOnDay);
-            dayIndex += 1;
-        }
-        // TO DO: CHECK WHEN 5(=allowedNumberOfdays) BLOCKS ARE CHOSEN, NO LESSONS ARE LEFT
-        // ONE BLOCK A DAY
-        if (lessonsLeft > 0) {
-            int daysLeftToDivide = (allowedNumberOfDays - this.couplingNumbers.size());
-            int remainderOfDays = lessonsLeft % daysLeftToDivide;
-            /*System.out.println("remainderOfDays");
-            System.out.println(remainderOfDays);*/
-            Integer mean = (int) Math.floor((float) lessonsLeft / daysLeftToDivide);
-            /*System.out.println(mean);
-            System.out.println("------");*/
-            for (int i = dayIndex; i < 5; i++) {
-                /*System.out.println(numberOfLessons.get(i));*/
-                exceedNumber += Math.abs( numberOfLessons.get(i).size() - mean - sign(remainderOfDays));
-                remainderOfDays -= 1;
-                /*System.out.println(exceedNumber);
-                System.out.println(remainderOfDays);*/
-            }
-            /*System.out.println("------");*/
-        }
-        return Math.max(exceedNumber, 0);
-    }
+
 
 /*    public int getMinimumPositionOfTimeslots(){
         //BOUND 500/5 LESSONS A dAY
@@ -414,11 +359,9 @@ public class LessonTask extends PanacheEntityBase {
         return 2 * countOverlaps;
     }
 
-    private static int sign(int numb){
-        if (numb > 0) {
-            return 1;
-        }
-        return 0;
+    @Override
+    public String toString() {
+        return  "task("+ taskNumber +")";
     }
 }
 

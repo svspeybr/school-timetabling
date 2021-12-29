@@ -16,7 +16,9 @@ import java.io.IOException;
 import java.time.DayOfWeek;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -30,8 +32,8 @@ public class XmlDomParser {
         //Instantiate the Factory
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         List<Timeslot> timeslotList = new ArrayList<>();
-        List<Teacher> teacherList = new ArrayList<>();
-        List<StudentGroup> studentGroupList = new ArrayList<>();
+        List<Teacher> teacherList;
+        List<StudentGroup> studentGroupList;
         List<Room> roomList = new ArrayList<>();
         List<LessonTask>  lessonTaskList = new ArrayList<>();
 /*        List<LessonBlock> lessonBlockList = new ArrayList<>();*/
@@ -138,7 +140,7 @@ public class XmlDomParser {
             timeslotList.add(toy3);*/
 
             //EXTRACT TEACHERNAMES FROM DOC
-            NodeList teachersList = doc.getElementsByTagName("Teacher");
+/*            NodeList teachersList = doc.getElementsByTagName("Teacher");
             List<String> teacherNameList = new ArrayList<>();
 
             for (int index =0; index < teachersList.getLength(); index ++) {
@@ -155,37 +157,42 @@ public class XmlDomParser {
 
                 }
             }
+
             //CREATE TEACHERLIST
+
 
             for (String name: teacherNameList) {
                 teacherList.add(new Teacher(name));
-            }
+            }*/
 
+            //Extract teachers from DATA/EXTERN/DOCENTEN...TEXT
+
+            teacherList = ExtractUntisText.fetchTeachers("/home/svs/IdeaProjects/school-timetabling/data/extern/DocentenSPC_101221.TXT");
+
+            studentGroupList = ExtractUntisText.fetchStudentGroups("/home/svs/IdeaProjects/school-timetabling/data/extern/KlassenSPC_101221.TXT", teacherList);
+
+            Map<String, Integer> studentNumbers = new HashMap<>(studentGroupList.size());
 
             //EXTRACT STUDENTGROUPNAMES FROM DOC +
             NodeList studentGroupsList = doc.getElementsByTagName("Group");
             //+ CREATE STUDENTGROUPS FROM FILE
 
-            StudentGroup studentGroup;
             for (int index =0; index < studentGroupsList.getLength(); index ++) {
                 Node node = studentGroupsList.item(index);
                 if (node.getNodeType() == Node.ELEMENT_NODE) {
-
                     Element element = (Element) node;
                     Node child = element.getElementsByTagName("Name").item(0);
                     Node childNumb = element.getElementsByTagName("Number_of_Students").item(0);
                     if (child !=  null) {
                         String acronym = child.getTextContent();
-                        //CREATE NEW STUDENTGROUP FROM DATA FILE
-                        studentGroup = new StudentGroup(acronym);
-                        studentGroup.setNumberOfStudents(Integer.parseInt(childNumb.getTextContent()));
-                        studentGroup.setYear(Integer.parseInt(acronym.substring(0,1)));
-                        studentGroupList.add(studentGroup);
+                        //FETCH NUMBER OF STUDENTS
+                        studentNumbers.put(acronym, Integer.parseInt(childNumb.getTextContent()));
                     }
-
-
                 }
             }
+
+            ExtractUntisText.updateStudentGroupsNumbers(studentGroupList, studentNumbers);
+
 
             //CREATE ROOMS
 

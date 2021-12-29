@@ -112,6 +112,16 @@ public class Timeslot extends PanacheEntityBase implements Comparable<Timeslot>{
         return nextTimeSlots.get(0);
     }*/
 
+    public Boolean inAfternoon(){
+        LocalTime midTime = LocalTime.of(12, 30);
+        return endTime.compareTo(midTime) > 0;
+    }
+
+    public Boolean inForenoon(){
+        LocalTime midTime = LocalTime.of(12, 30);
+        return startTime.compareTo(midTime) < 0;
+    }
+
     public Boolean isConsecutiveTo(Timeslot timeslot) {
         return this.dayOfWeek == timeslot.getDayOfWeek() &&
                 (this.startTime.equals(timeslot.getEndTime()) ||

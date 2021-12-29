@@ -35,6 +35,28 @@ public class LessonResource {
     }
 
     @GET
+    @Path("/getLessonTask/{lessonId}")
+    // Possible not found execption!!!!
+    public LessonTask getLessonTask(@PathParam("lessonId") Long lessonId) {
+        Lesson lesson = Lesson.findById(lessonId);
+        if (lesson == null) {
+            throw new NotFoundException();
+        }
+        return lesson.getLessonTask();
+    }
+
+    @GET
+    @Path("/getRoomId/{lessonId}")
+    // Possible not found execption!!!!
+    public int getRoomId(@PathParam("lessonId") Long lessonId) {
+        Lesson lesson = Lesson.findById(lessonId);
+        if (lesson.getRoom() == null) {
+            return 0;
+        }
+        return lesson.getRoom().getRoomId().intValue();
+    }
+
+    @GET
     public List<Lesson> get() {
         return Lesson.listAll();
     }
@@ -132,16 +154,22 @@ public class LessonResource {
     }*/
     //SWAP CARDS OR INSERT CARD <--> FULLY DETERMINED BY id's IN 'app.js'
     @POST
-    @Path("changeTiRoTe/dragLessonId/{dragLessonId}/{dropOtherTag}/{dropOtherId}/{dropFirstTag}/{dropFirstId}")
+    @Path("changeTiRoTe/dragLessonId/{dragLessonId}/{dropOtherTag}/{dropOtherId}/{dropFirstId}")
     public Response changeTiRoTe(@PathParam("dragLessonId") Long dragLessonId,
                                  @PathParam("dropOtherTag") String dropOtherTag, // needed to change teachers/studentgroup?
                                  @PathParam("dropOtherId") String dropOtherId,// needed to change teachers/studentgroup?
-                                 @PathParam("dropFirstTag") String dropFirstTag,
+                                /* @PathParam("dropFirstTag") String dropFirstTag,*/
                                  @PathParam("dropFirstId") Long dropFirstId){
 
         Boolean changeRoom = dropOtherTag.equals("ro");
         Lesson dragLesson = Lesson.findById(dragLessonId);
-        //Case we drop card in empty slot. 'dropFirstTag' corresponds with 'timeslotId' in app.js
+
+        dragLesson.setTimeslot(Timeslot.findById(dropFirstId));
+        if (changeRoom) {
+            dragLesson.setRoom(Room.findById(Long.parseLong(dropOtherId)));
+        }
+
+/*        //Case we drop card in empty slot. 'dropFirstTag' corresponds with 'timeslotId' in app.js
         if (dropFirstTag.equals("ti")) {
             dragLesson.setTimeslot(Timeslot.findById(dropFirstId));
             if (changeRoom) {
@@ -154,26 +182,36 @@ public class LessonResource {
             if (changeRoom) {
                 swapRooms(dragLesson, dropLesson);
             }
-        }
+        }*/
 
         return Response.status(Response.Status.OK).build();
     }
 
+    @POST
+    @Path("resetTimeslots/{timeslotId}")
+    public Response resetTimeslot(@PathParam("timeslotId") Long timeslotId) {
+        //SET ALL RELATED LESSONS TO NULL
+        List<Lesson> lessons = Lesson.list("LESSON_TIMESLOTID", timeslotId);
+        lessons.forEach( lesson -> lesson.setTimeslot(null));
+        return Response.status(Response.Status.OK).build();
+    }
     //ADD LESSON TO TIMESLOT BY DRAGGING <-->FULLY DEPENDING ON app.js
     @POST
-    @Path("assignTimeSlot/{dropFirstTag}/{dropFirstId}/lessonId/{lessonId}")
-    public Response assignTimeslot(@PathParam("dropFirstTag") String dropFirstTag,
+    @Path("assignTimeSlot/{dropFirstId}/lessonId/{lessonId}")
+    public Response assignTimeslot(/*@PathParam("dropFirstTag") String dropFirstTag,*/
                                    @PathParam("dropFirstId") Long dropFirstId,
                                    @PathParam("lessonId") Long lessonId) {
         Lesson lesson = Lesson.findById(lessonId);
-        Timeslot timeslot;
-        if (dropFirstTag.equals("ti")) {
-            timeslot = Timeslot.findById(dropFirstId);}
-        else {
-            Lesson dropLesson = Lesson.findById(dropFirstId);
-            timeslot = dropLesson.getTimeslot();
-        }
+        Timeslot timeslot = Timeslot.findById(dropFirstId);
         lesson.setTimeslot(timeslot);
+
+//        if (dropFirstTag.equals("ti")) {
+//            timeslot = Timeslot.findById(dropFirstId);}
+//        else {
+//            Lesson dropLesson = Lesson.findById(dropFirstId);
+//            timeslot = dropLesson.getTimeslot();
+//        }
+
         return Response.status(Response.Status.OK).build();
     }
 

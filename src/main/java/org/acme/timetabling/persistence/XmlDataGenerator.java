@@ -39,7 +39,9 @@ public class XmlDataGenerator {
                 CourseLevel.listAll(),
                 StudentGroup.listAll(),
                 Teacher.listAll(),
-                Preference.listAll());
+                Preference.listAll(),
+                SubjectCollection.listAll(),
+                ThemeCollection.listAll());
         solutionFileIO.write(timeTable,outputFile);
     }
 }

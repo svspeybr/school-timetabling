@@ -26,6 +26,7 @@ public class Preference extends PanacheEntityBase {
     public Preference(Teacher teacher, Timeslot timeslot) {
         this.teacher = teacher;
         this.timeslot = timeslot;
+        teacher.addPreference(this);
     }
 
     public Long getPreferenceId() {
@@ -40,16 +41,9 @@ public class Preference extends PanacheEntityBase {
         return timeslot;
     }
 
-    public void setTeacher(Teacher teacher) {
-        this.teacher = teacher;
-    }
-
-    public void setTimeslot(Timeslot timeslot) {
-        this.timeslot = timeslot;
-    }
 
     @Override
     public String toString() {
-        return teacher.getAcronym() + "("+ preferenceId +")";
+        return "pref("+ teacher.getAcronym() + "-"+ timeslot.toString() +")";
     }
 }

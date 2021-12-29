@@ -16,6 +16,7 @@ import org.acme.timetabling.rest.repository.LessonRepository;
 import org.acme.timetabling.rest.repository.LessonTaskRepository;
 import org.optaplanner.core.api.score.ScoreManager;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
+import org.optaplanner.core.api.score.constraint.ConstraintMatchTotal;
 import org.optaplanner.core.api.solver.SolverFactory;
 import org.optaplanner.core.api.solver.SolverManager;
 import org.optaplanner.core.api.solver.SolverStatus;
@@ -45,18 +46,35 @@ public class TimeTableResource {
     @Inject
     ScoreManager<TimeTable, HardSoftScore> scoreManager;
 
+
+
     // To try, open http://localhost:8080/timeTable
     @GET
     public TimeTable getTimeTable() {
         // Get the solver status before loading the solution
-        SolverStatus solverStatus =solverManager.getSolverStatus(SINGLETON_TIME_TABLE_ID);
-
+        SolverStatus solverStatus = solverManager.getSolverStatus(SINGLETON_TIME_TABLE_ID);
         TimeTable timeTable = findById(SINGLETON_TIME_TABLE_ID);
         scoreManager.updateScore(timeTable);
         // to avoid the race condition that the solver terminates between them
         timeTable.setSolverStatus(solverStatus);
        return timeTable;
     }
+
+    @GET
+    @Path("/summary")
+    public List<String> getSummary() {
+        TimeTable timeTable = findById(SINGLETON_TIME_TABLE_ID);
+
+        Map<String, ConstraintMatchTotal<HardSoftScore>> map= scoreManager.explainScore(timeTable).getConstraintMatchTotalMap();
+        List<String> constraintsValues = new ArrayList<>(map.keySet().size() * 2);
+
+        for (String domEl: map.keySet()){
+            constraintsValues.add(domEl);
+            constraintsValues.add(map.get(domEl).getScore().toString());
+        }
+        return constraintsValues;
+    }
+
     @POST
     @Path("/solve")
     public void solve() {
@@ -83,7 +101,10 @@ public class TimeTableResource {
                 courseLevelList,
                 StudentGroup.listAll(),
                 Teacher.listAll(),
-                Preference.listAll());
+                Preference.listAll(),
+                SubjectCollection.listAll(),
+                ThemeCollection.listAll()
+        );
     }
 
     @Transactional

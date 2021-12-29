@@ -30,6 +30,7 @@ public class Lesson extends PanacheEntityBase{
 
     //Initialized during planning
     @ManyToOne
+    @JoinColumn(name = "LESSON_TIMESLOTID")
     private Timeslot timeslot;
 
     @ManyToOne

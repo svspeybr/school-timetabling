@@ -11,6 +11,7 @@ import javax.enterprise.event.Observes;
 import javax.transaction.Transactional;
 
 import org.acme.timetabling.domain.*;
+import org.acme.timetabling.parser.ExtractUntisText;
 import org.acme.timetabling.parser.XmlDomParser;
 
 import io.quarkus.runtime.StartupEvent;
@@ -20,25 +21,81 @@ import org.acme.timetabling.rest.TimeslotResource;
 @ApplicationScoped
 public class DataGenerator {
 
+/*    public static void main(String[] args){
+        Function<String, List> giveList = XmlDomParser.main();
+
+        //TEACHERS
+        List<Teacher> teachers = giveList.apply("te");
+
+        teachers.forEach(teacher -> {
+            teacher.updateTaskHours();
+            System.out.println(teacher.getAcronym());
+            System.out.println(teacher.getFullTime());
+            System.out.println(teacher.getHoursAwayFromFullTime());
+        });
+
+
+    }*/
 
     @Transactional
     public void generateData(@Observes StartupEvent startupEvent) {
 
+        //DefaultSettings
+        DefaultSettings defaultSettings = new DefaultSettings(1L);
+        DefaultSettings.persist(defaultSettings);
 
+        //SET SCIENCE COURSES
+        SubjectCollection scienceCourses = new SubjectCollection("science", 5);
+        scienceCourses.addSubject("CH");
+        scienceCourses.addSubject("FY");
+        scienceCourses.addSubject("BI");
+        scienceCourses.addSubject("NW");
+        SubjectCollection.persist(scienceCourses);
 
         Function<String, List> giveList = XmlDomParser.main();
         //TIMESLOTS
-        Timeslot.persist( giveList.apply("ti"));
+        List<Timeslot> timeslots = giveList.apply("ti");
+        //UPdat number of Timeslots
+        for (Timeslot timeslot: timeslots){
+            defaultSettings.addSlotCount(timeslot.getDayOfWeek().getValue(), 1);
+        }
+
+        Timeslot.persist(timeslots);
         //ORDERING TIMESLOTS
         TimeslotResource.updatePositions();
 
         //TEACHERS
-        Teacher.persist(giveList.apply("te"));
+        List<Teacher> teachers = giveList.apply("te");
+        Teacher svs = teachers.stream().filter(teacher -> teacher.getAcronym().equals("SVS")).findFirst().get();
         //ROOMS
         Room.persist(giveList.apply("ro"));
 
+        //Preferences needs ORDERED TIMESLOTS
+        Preference.persist(ExtractUntisText.fetchPreferences("/home/svs/IdeaProjects/school-timetabling/data/extern/TijdswensenSPC_101221.TXT",
+                teachers,
+                timeslots));
+
+        int index = 0;
+        for (Teacher teacher: teachers){
+            index++;
+            //Referring to image of card
+            teacher.setCoverId(index);
+            //update fulltime FROM lessonTasks + update firstOrLastHours and noTeachingDays FROM PREFERENCES
+            teacher.updateDependents(defaultSettings);
+        }
+        Teacher.persist(teachers);
+
         //STUDENTGROUPS
-        StudentGroup.persist(giveList.apply("st"));
+        List<StudentGroup> studentGroups = giveList.apply("st");
+        for (StudentGroup studentGroup: studentGroups) {
+            if (studentGroup.getGroupName().equals("5ECWI") ||
+                    studentGroup.getGroupName().equals("5GRWI") ||
+                    studentGroup.getGroupName().equals("5LAWI")){
+                studentGroup.addClassTeacher(svs);
+            }
+        }
+
+        StudentGroup.persist(studentGroups);
         //LESSONTASKS
         List<LessonTask> lessonTaskList = giveList.apply("ta");
 
@@ -51,23 +108,61 @@ public class DataGenerator {
         CourseLevel histCourseLevel6 = new CourseLevel(new ArrayList<>(historyTasks6));
         CourseLevel.persist(histCourseLevel5);
         CourseLevel.persist(histCourseLevel6);
-        LessonTask lessonTaskWGS = lessonTaskList.stream().filter(leta-> leta.getTaskNumber() == 970).findFirst().get();
-        //ADD COUPLING
-        lessonTaskWGS.addCoupling(2);
-        lessonTaskWGS.addCoupling(3);
-        LessonTask.persist(lessonTaskList);
-        //LESSONS
-        Lesson.persist( giveList.apply("le"));
 
+        LessonTask.persist(lessonTaskList);
+
+        //LESSONS
+        List<Lesson> lessons = giveList.apply("le");
+        Lesson.persist(lessons);
+
+        //BAD
+        ThemeCollection tc = new ThemeCollection("TURNZAAL");
+        for (Lesson lesson: lessons){
+            if (lesson.getSubject().equals("LO")){
+                tc.addLesson(lesson.getLessonId());
+            }
+        }
+        tc.addMultiplicityForTimeslot(timeslots.get(0), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(1), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(2), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(3), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(4), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(5), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(6), 2);
+
+        tc.addMultiplicityForTimeslot(timeslots.get(8), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(9), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(10), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(11), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(12), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(13), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(14), 2);
+
+        tc.addMultiplicityForTimeslot(timeslots.get(16), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(17), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(18), 1);
+        tc.addMultiplicityForTimeslot(timeslots.get(19), 1);
+
+        tc.addMultiplicityForTimeslot(timeslots.get(21), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(22), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(23), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(24), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(25), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(26), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(27), 2);
+
+        tc.addMultiplicityForTimeslot(timeslots.get(29), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(30), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(31), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(32), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(33), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(34), 2);
+        tc.addMultiplicityForTimeslot(timeslots.get(35), 2);
+
+        tc.persist();
 
         //Configure Timetable for benchmark
         /*XmlDataGenerator.main();*/
-
-        //DefaultSettings
-        DefaultSettings defaultSettings = new DefaultSettings();
-        //SET SCIENCE COURSES
-        defaultSettings.addScienceCourse("CH");
-        defaultSettings.addScienceCourse("FY");
 
         //Configure solver
 

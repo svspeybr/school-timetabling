@@ -1,9 +1,6 @@
 package org.acme.timetabling.rest;
 
-import org.acme.timetabling.domain.Lesson;
-import org.acme.timetabling.domain.LessonTask;
-import org.acme.timetabling.domain.StudentGroup;
-import org.acme.timetabling.domain.Teacher;
+import org.acme.timetabling.domain.*;
 import org.acme.timetabling.rest.repository.LessonTaskRepository;
 
 import javax.inject.Inject;
@@ -29,10 +26,19 @@ public class LessonTaskResource {
     @Path("/{taskNumber}")
     public LessonTask get(@PathParam("taskNumber") Integer taskNumber) {
         LessonTask lessonTask = LessonTask.findById(taskNumber);
+        lessonTask.updateCoupling();
         if (lessonTask == null){
             throw new NotFoundException();
         }
         return lessonTask;
+    }
+    @GET
+    @Path("/bySubject/{subject}")
+    public List<LessonTask> getLessonTasksBySubject(@PathParam("subject") String subject){
+        if (subject.equals("_")){
+            return LessonTask.listAll();
+        }
+        return LessonTask.find("SUBJECT", subject).list();
     }
 
     @GET
@@ -43,6 +49,7 @@ public class LessonTaskResource {
                 throw new NotFoundException();
             }
             lessonTask.getCouplingNumbers().sort(Comparator.naturalOrder());
+            lessonTask.updateCoupling();
             return lessonTask;
     }
 
@@ -63,6 +70,9 @@ public class LessonTaskResource {
         //The values are separated by 'separationValue'
         List<String> teachers = convertor(teacherString, '-');
         List<String> groupNames = convertor(studentGroupString, '-');
+
+        //DEFAULTSETTINGS:
+        DefaultSettings ds = DefaultSettings.findById(1L);
 
         //No OLD LESSONTASK
         LessonTask oldLessonTask = LessonTask.findById(taskNumber);
@@ -98,6 +108,10 @@ public class LessonTaskResource {
             //POST UPDATED LESSON
             Lesson.persist(newLesson);
         }
+
+        //UPDATE TEACHERS TaskHOURS
+        teList.forEach(teacher -> teacher.updateDependsFromLeTa(ds));
+
         return Response.status(Response.Status.OK).build();
     }
 
@@ -129,7 +143,7 @@ public class LessonTaskResource {
     @Path("/removeCouplingOfSize/{size}/FromTask/{taskId}")
     public Response removeCoupling(@PathParam("size") int size,
                                    @PathParam("taskId") Long taskId){
-        if(! lessonTaskRepository.removeBlockRecord(taskId, size)){
+        if(! lessonTaskRepository.removeBlockRecord(taskId, size)) {
             return Response.status(Response.Status.BAD_REQUEST).build();
         }
         return Response.status(Response.Status.OK).build();
@@ -140,6 +154,7 @@ public class LessonTaskResource {
     @DELETE
     @Path("/{taskNumber}")
     public Response delete (@PathParam("taskNumber") Integer taskNumber){
+        DefaultSettings ds = DefaultSettings.findById(1L);
         LessonTask lessonTask = LessonTask.findById(taskNumber);
         if (lessonTask == null) {
             return Response.status(Response.Status.NOT_FOUND).build();
@@ -147,13 +162,17 @@ public class LessonTaskResource {
         for (Lesson lesson: lessonTask.getLessonsOfTaskList()){
             lesson.delete();
         }
+        for (Teacher teacher: lessonTask.getTaughtBy()){
+            teacher.removeLessonTask(lessonTask);
+            teacher.updateDependsFromLeTa(ds);
+        }
         lessonTask.delete();
         return Response.status(Response.Status.OK).build();
     }
 
 
     //**************************************************************************************************
-    // Convertor for pathparameters
+    // Convertor for pathparameters -- > TO DO: REMOVE DUPLICATE IN THEMECOLLECTIONRESOURCE
     //**************************************************************************************************
 
     //Extract all teacherNames/studentGroupnames send by pathparameter in One sting: encoded

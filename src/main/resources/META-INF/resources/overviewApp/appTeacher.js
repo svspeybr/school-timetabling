@@ -8,7 +8,17 @@ function refreshTeacherOverview() {
 
         const theadTeacherOverview = $("<thead>").appendTo(teacherOverview);
         const headerRowTeacherOverview = $("<tr>").appendTo(theadTeacherOverview);
-        headerRowTeacherOverview.append($("<th>Teachers</th>"));
+        headerRowTeacherOverview.append($("<th>sigel</th>"));
+
+        // Show - name
+        headerRowTeacherOverview
+                .append($("<th/>")
+                .append($("<span/>").text("naam")));
+
+        //Display - hoursOfWorking
+        headerRowTeacherOverview
+                .append($("<th/>")
+                .append($("<span/>").text("opdracht")));
         //Showing later additional properties of teachers?
 /*        $.each(timeTable.roomList, (index, room) => {
             headerRowByRoom
@@ -24,6 +34,17 @@ function refreshTeacherOverview() {
                 .append($(`<th class="align-middle"/>`)
                     .append($("<span/>").text(`
                         ${teacher.acronym}
+                    `)));
+
+            rowTeacherOverview
+                .append($(`<th class="align-middle"/>`)
+                    .append($("<span/>").text(`
+                        ${teacher.name}
+                    `)));
+            rowTeacherOverview
+                .append($(`<th class="align-middle"/>`)
+                    .append($("<span/>").text(`
+                        ${teacher.taskHours}
                     `)));
                       /*  .append($(`<button type="button" class="ml-2 mb-1 btn btn-light btn-sm p-1"/>`)
                             .append($(`<small class="fas fa-trash"/>`)).click(() => deleteTimeslot(timeslot)))));*/
@@ -43,7 +64,17 @@ function refreshTaskOverview() {
 
         const theadTaskOverview = $("<thead>").appendTo(taskOverview);
         const headerRowTaskOverview = $("<tr>").appendTo(theadTaskOverview);
-        headerRowTaskOverview.append($("<th>Tasks</th>"));
+        headerRowTaskOverview.append($("<th>Opdrachten</th>"));
+
+        headerRowTaskOverview
+                .append($("<th/>")
+                .append($("<span/>").text("onderwerp")));
+        headerRowTaskOverview
+                 .append($("<th/>")
+                 .append($("<span/>").text("aantal lessen")));
+        headerRowTaskOverview
+                 .append($("<th/>")
+                 .append($("<span/>").text("leerplan")));
         //Showing later additional properties of teachers?
 /*        $.each(timeTable.roomList, (index, room) => {
             headerRowByRoom
@@ -59,6 +90,21 @@ function refreshTaskOverview() {
                 .append($(`<th class="align-middle"/>`)
                     .append($("<span/>").text(`
                         ${lessonTask.taskNumber}
+                    `)));
+            rowTaskOverview
+                .append($(`<th class="align-middle"/>`)
+                    .append($("<span/>").text(`
+                        ${lessonTask.subject}
+                    `)));
+            rowTaskOverview
+                .append($(`<th class="align-middle"/>`)
+                    .append($("<span/>").text(`
+                        ${lessonTask.multiplicity}
+                    `)));
+            rowTaskOverview
+                .append($(`<th class="align-middle"/>`)
+                    .append($("<span/>").text(`
+                        ${lessonTask.courseLevel}
                     `)));
                       /*  .append($(`<button type="button" class="ml-2 mb-1 btn btn-light btn-sm p-1"/>`)
                             .append($(`<small class="fas fa-trash"/>`)).click(() => deleteTimeslot(timeslot)))));*/

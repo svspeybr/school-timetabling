@@ -8,13 +8,13 @@ function refreshPreferenceOverview() {
 
         const theadPreferenceOverview = $("<thead>").appendTo(preferenceOverview);
         const headerRowPreferenceOverview = $("<tr>").appendTo(theadPreferenceOverview);
-        headerRowPreferenceOverview.append($("<th>Teacher</th>"));
+        headerRowPreferenceOverview.append($("<th>docent</th>"));
         headerRowPreferenceOverview
                     .append($("<th/>")
-                    .append($("<span/>").text("Day0fWeek")))
+                    .append($("<span/>").text("weekdag")))
         headerRowPreferenceOverview
                             .append($("<th/>")
-                            .append($("<span/>").text("Timeslot")))
+                            .append($("<span/>").text("tijdslot")))
 
         const tbodyPreferenceOverview = $("<tbody>").appendTo(preferenceOverview);
         $.each(preferenceList, (index, preference) => {

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta content="text/html; charset=UTF-8" http-equiv="Content-Type">
+  <meta content="width=device-width, initial-scale=1" name="viewport">
+  <title>Preference Overview - School Timetabling</title>
+  <link rel="icon" href="../overviewImages/logoJette.png" type="image/icon type">
+  <link rel="stylesheet" href="/webjars/bootstrap/css/bootstrap.min.css" />
+  <link rel="stylesheet" href="/webjars/font-awesome/css/all.css" />
+</head>
+<body>
+
+<div class="container">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="/">
+      <img src="../optaPlannerLogo200px.png" alt="OptaPlanner logo">
+    </a>
+  </nav>
+  <div class="sticky-top d-flex justify-content-center align-items-center" aria-live="polite" aria-atomic="true">
+    <div id="notificationPanel" style="position: absolute; top: .5rem;"></div>
+  </div>
+  <h1> Overzicht: voorkeuren</h1>
+
+  <div style="margin-bottom: .5rem">
+
+    <div class="form-group">
+      <input type="text" list="teachers" id="teacher"/>
+      <datalist id="teachers">
+      </datalist>
+    </div>
+    <!--OVERVIEW TABLE -->
+    <table class="table table-striped" id="prefPerTeachOverview">
+      <!-- Filled in by appPreference.js -->
+    </table>
+    <!--BUTTONS FOR ADDING -->
+    <h4>Info: </h4>
+    <ul class="list-group" id = "teacherInfo">
+    </ul>
+    <!--OVERVIEW UNASSIGNED LESSONS-->
+  </div>
+
+</div>
+
+<script src="/webjars/jquery/jquery.min.js"></script>
+<script src="/webjars/bootstrap/js/bootstrap.min.js"></script>
+<script src="/webjars/momentjs/min/moment.min.js"></script>
+<script src="../overviewApp/appPreferencePerTeacher.js"></script>
+</body>
+
+</html>

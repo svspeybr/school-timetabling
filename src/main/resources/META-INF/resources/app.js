@@ -1,5 +1,13 @@
 var autoRefreshIntervalId = null;
 
+const dayTextWidth= "20px"
+const badgeHourNumberSize = "100px";
+const widthColumn = "220px";
+const heightRow = "130px";
+const cardWidth = "210px";
+const cardHeight = "120px";
+
+
 function refreshTimeTable() {
     $.getJSON("/timeTable", function(timeTable) {
         refreshSolvingButtons(timeTable.solverStatus != null && timeTable.solverStatus !== "NOT_SOLVING");
@@ -14,8 +22,6 @@ function refreshTimeTable() {
         const unassignedLessons = $("#unassignedLessons");
         unassignedLessons.children().remove();
         /*Preferences*/
-        const timeslotPreferences = $("#preference_timeslot");
-        timeslotPreferences.children().remove();
         const teachersForNewLesson = $("#lesson_teachers");
         teachersForNewLesson.children().remove();
         const studentGroupsForNewLesson = $("#lesson_studentGroups");
@@ -26,42 +32,85 @@ function refreshTimeTable() {
         HEADING TABLE
         ---------------------------------------
         */
-        const theadByRoom = $("<thead>").appendTo(timeTableByRoom);
+        const theadByRoom = $(`<thead style= "text-align:center; vertical-align: middle; margin: 0px;">`).appendTo(timeTableByRoom);
+
         const headerRowByRoom = $("<tr>").appendTo(theadByRoom);
-        headerRowByRoom.append($("<th>Timeslot</th>"));
+
+        //FULLSCREEN - BUTTON
+        headerRowByRoom.append($("<th/>")
+                                    .append($(`<button type = "button" class="btn btn-link" style = "padding: 0;"/>`)
+                                            .append($(`<i class="fas fa-expand fa-lg"/>`))
+                                            .click(()=> setToFullScreen("Room")))
+                                    .append($(`<div/>`).css("width", dayTextWidth)));
+
+        headerRowByRoom.append($("<th/>").append($(`<div/>`).css("width", badgeHourNumberSize).text("Tijdslot")));
         $.each(timeTable.roomList, (index, room) => {
             headerRowByRoom
-                .append($("<th/>")
-                    .append($("<span/>").text(room.name))
-                    .append($(`<button type="button" class="ml-2 mb-1 btn btn-light btn-sm p-1"/>`)
-                        .append($(`<small class="fas fa-trash"/>`)).click(() => deleteRoom(room))));
+                .append($(`<th />`)
+                    .append($(`<div/>`)
+                        .prop("class", "columnWidthRoom")
+                        .css("width", widthColumn)
+                        .append($(`<span/>`).text(room.name)
+                        .append($(`<button type="button" class="btn btn-light btn-sm p-1" />`)
+                            .append($(`<small class="fas fa-trash"/>`)).click(() => deleteRoom(room))))));
         });
 
         headerRowByRoom
             .append($("<th/>")
-                .append($("<span/>").text("Unassigned")));
+                .append($(`<div/>`)
+                    .prop("class", "columnWidthRoom")
+                    .css("width", widthColumn)
+                    .append($(`<span />`).text("Niet toegewezen"))));
 
-        const theadByTeacher = $("<thead>").appendTo(timeTableByTeacher);
+        const theadByTeacher = $(`<thead style= "text-align:center; vertical-align: middle; margin: 0px;">`).appendTo(timeTableByTeacher);
         const headerRowByTeacher = $("<tr>").appendTo(theadByTeacher);
-        headerRowByTeacher.append($("<th>Timeslot</th>"));
+
+        //FULLSCREEN - BUTTON
+        headerRowByTeacher.append($("<th/>").append($(`<button type = "button" class="btn btn-link" style = "padding: 0;"/>`)
+                                                    .append($(`<i class="fas fa-expand fa-lg"/>`))
+                                                    .click(()=> setToFullScreen("Teacher")))
+                                            .append($(`<div/>`).css("width", dayTextWidth)));
+
+        headerRowByTeacher.append($("<th/>")
+                            .append($(`<div/>`)
+                                .css("width", badgeHourNumberSize)
+                                .text("Tijdslot")));
+
         const teacherList = [...new Set(timeTable.lessonTaskList.flatMap(
                                                             lessontask => lessontask.taughtBy.map(
                                                             teacher => teacher.acronym)))].sort();
         $.each(teacherList, (index, teacher) => {
             headerRowByTeacher
-                .append($("<th/>")
-                    .append($("<span/>").text(teacher)));
+                .append($("<th />")
+                         .append($(`<div/>`)
+                            .prop("class", "columnWidthTeacher")
+                            .css("width", widthColumn)
+                            .append($(`<span />`).text(teacher))));
         });
-        const theadByStudentGroup = $("<thead>").appendTo(timeTableByStudentGroup);
+        const theadByStudentGroup = $(`<thead style= "text-align:center; vertical-align: middle; margin: 0px;">`).appendTo(timeTableByStudentGroup);
         const headerRowByStudentGroup = $("<tr>").appendTo(theadByStudentGroup);
-        headerRowByStudentGroup.append($("<th>Timeslot</th>"));
+        //FULLSCREEN -BUTTON
+        headerRowByStudentGroup.append($("<th/>")
+                                        .append($(`<button type = "button" class="btn btn-link" style = "padding: 0;"/>`)
+                                                .append($(`<i class="fas fa-expand fa-lg"/>`))
+                                                .click(()=> setToFullScreen("StudentGroup")))
+                                        .append($(`<div/>`).css("width", dayTextWidth)));
+
+        headerRowByStudentGroup.append($("<th/>")
+                                    .append($(`<div/>`)
+                                        .css("width", badgeHourNumberSize)
+                                        .text("Tijdslot")));
+
         const studentGroupList = [...new Set(timeTable.lessonTaskList.flatMap(
                                                                     lessontask => lessontask.studentGroups.map(
                                                                     studentGroup => studentGroup.groupName)))].sort();
         $.each(studentGroupList, (index, studentGroup) => {
             headerRowByStudentGroup
-                .append($("<th/>")
-                    .append($("<span/>").text(studentGroup)));
+                .append($("<th />")
+                         .append($(`<div/>`)
+                         .prop("class", "columnWidthStudentGroup")
+                         .css("width", widthColumn)
+                         .append($(`<span />`).text(studentGroup))));;
         });
 
 
@@ -73,14 +122,27 @@ function refreshTimeTable() {
         const tbodyByRoom = $("<tbody>").appendTo(timeTableByRoom);
         const tbodyByTeacher = $("<tbody>").appendTo(timeTableByTeacher);
         const tbodyByStudentGroup = $("<tbody>").appendTo(timeTableByStudentGroup);
+
+        var dutchDayNames = ["maandag", "dinsdag", "woensdag", "donderdag", "vrijdag", "zaterdag", "zondag"];
         var previousDay = "MONDAY"
+        var firstRow = "firstRow fr-0";
+        var slotsADay = 0;
+        const slots = [];
+        var dayIndex = 0;
+
         $.each(timeTable.timeslotList, (index, timeslot) => {
 
                     if (previousDay != timeslot.dayOfWeek) {
+                        slots.push(slotsADay);
+                        slotsADay = 1;
+
                         previousDay = timeslot.dayOfWeek;
+                        dayIndex ++;
+                        firstRow = "firstRow fr-" + dayIndex.toString();
+
                         const rowByRoom = $(`<tr class ="table-success">`).appendTo(tbodyByRoom);
                         rowByRoom
-                                .append($("<th />"));
+                                .append($(`<th />`));
                         $.each(timeTable.roomList, (index, room) => {
                                 rowByRoom.append($("<td/>"));
                         });
@@ -89,19 +151,21 @@ function refreshTimeTable() {
 
                         const rowByTeacher = $(`<tr class = "table-success">`).appendTo(tbodyByTeacher);
                         rowByTeacher
-                                .append($("<th />"));
+                                .append($(`<th/>`));
                         $.each(teacherList, (index, teacher) => {
                                                 rowByTeacher.append($("<td/>"));
                         });
                         const rowByStudentGroup = $(`<tr class = "table-success">` ).appendTo(tbodyByStudentGroup);
                         rowByStudentGroup
-                                .append($("<th />"));
+                                .append($(`<th/>`));
                         $.each(studentGroupList, (index, studentGroup) => {
                                                     rowByStudentGroup.append($("<td/>"));
                         });
+                    } else {
+                        slotsADay ++;
                     }
-
-                const rowByRoom = $("<tr>").appendTo(tbodyByRoom);
+                //firstROW class needed for determining when a new day starts in the table
+                const rowByRoom = $("<tr>").prop("class", firstRow).css("height", heightRow).appendTo(tbodyByRoom);
                 const lastResortTimeslotButton  = $(`<button type="button" class="ml-2 mb-1 btn btn-light btn-sm p-1"/>`);
                 if (timeslot.lastResort) {
                     lastResortTimeslotButton
@@ -114,19 +178,18 @@ function refreshTimeTable() {
                 }
                 rowByRoom
                     .append($(`<th class="align-middle"/>`)
-                        .append($("<span/>").text(`
-                        ${timeslot.dayOfWeek.charAt(0) + timeslot.dayOfWeek.slice(1).toLowerCase()}
-                        ${moment(timeslot.startTime, "HH:mm:ss").format("HH:mm")}
-                        -
-                        ${moment(timeslot.endTime, "HH:mm:ss").format("HH:mm")}`))
-                            .append($(`<button type="button" class="ml-2 mb-1 btn btn-light btn-sm p-1"/>`)
-                                .append($(`<small class="fas fa-trash"/>`)).click(() => deleteTimeslot(timeslot)))
-                            .append(lastResortTimeslotButton));
+                        .append($("<span/>")
+                            .prop("class", "badge badge-secondary pb-2 align-middle")
+                            .prop("title", `${moment(timeslot.startTime, "HH:mm:ss").format("HH:mm")}-${moment(timeslot.endTime, "HH:mm:ss").format("HH:mm")}`)
+                            .css({"width": "100px"})
+                            .append($("<h4/>")
+                            .text(slotsADay.toString()+"u"))));
 
                 $.each(timeTable.roomList, (index, room) => {
                     rowByRoom.append($("<td/>")
                                             .prop("id", `ti-${timeslot.timeslotId}-ro-${room.roomId}`)
-                                            .prop("class", `droppable`));
+                                            .prop("class", `droppable`)
+                                            );
                 });
                 rowByRoom
                     .append($("<td/>")
@@ -134,15 +197,17 @@ function refreshTimeTable() {
                         .prop("class", `droppable`));
 
 
-                const rowByTeacher = $("<tr>").appendTo(tbodyByTeacher);
+                const rowByTeacher = $("<tr>").prop("class", firstRow).css("height", heightRow).appendTo(tbodyByTeacher);
                 rowByTeacher
-                    .append($(`<th class="align-middle"/>`)
-                        .append($("<span/>").text(`
-                        ${timeslot.dayOfWeek.charAt(0) + timeslot.dayOfWeek.slice(1).toLowerCase()}
-                        ${moment(timeslot.startTime, "HH:mm:ss").format("HH:mm")}
-                        -
-                        ${moment(timeslot.endTime, "HH:mm:ss").format("HH:mm")}
-                    `)));
+                        .append($(`<th class="align-middle"/>`)
+                        .append($("<span/>")
+                            .prop("class", "badge badge-secondary pb-2 align-middle")
+                            .prop("title", `${moment(timeslot.startTime, "HH:mm:ss").format("HH:mm")}-${moment(timeslot.endTime, "HH:mm:ss").format("HH:mm")}`)
+                            .css("width", "100px")
+                            .append($("<h4/>")
+                            .text(slotsADay.toString()+"u"))));
+
+
                     $.each(teacherList, (index, teacher) => {
                         rowByTeacher.append($("<td/>")
                                                 .prop("id", `ti-${timeslot.timeslotId}-te-${teacher}`)
@@ -150,37 +215,35 @@ function refreshTimeTable() {
                                                 );
                     });
 
-                    const rowByStudentGroup = $("<tr>").appendTo(tbodyByStudentGroup);
-                    rowByStudentGroup
-                               .append($(`<th class="align-middle"/>`)
-                               .append($("<span/>").text(`
-                                    ${timeslot.dayOfWeek.charAt(0) + timeslot.dayOfWeek.slice(1).toLowerCase()}
-                                    ${moment(timeslot.startTime, "HH:mm:ss").format("HH:mm")}
-                                     -
-                                    ${moment(timeslot.endTime, "HH:mm:ss").format("HH:mm")}
-                               `)));
+                const rowByStudentGroup = $("<tr>").prop("class", firstRow).css("height", heightRow).appendTo(tbodyByStudentGroup);
+                rowByStudentGroup
+                        .append($(`<th class="align-middle"/>`)
+                        .append($("<span/>")
+                            .prop("class", "badge badge-secondary pb-2 align-middle")
+                            .prop("title", `${moment(timeslot.startTime, "HH:mm:ss").format("HH:mm")}-${moment(timeslot.endTime, "HH:mm:ss").format("HH:mm")}`)
+                            .css("width", "100px")
+                            .append($("<h4/>")
+                            .text(slotsADay.toString()+"u"))
+                            .append($(`<button type="button" class="ml-2 mb-1 btn btn-light btn-sm p-1"/>`)
+                                .append($(`<small class="fas fa-trash"/>`)).click(() => {deleteTimeslot(timeslot);}))
+                            .append(lastResortTimeslotButton)));
 
-                    $.each(studentGroupList, (index, studentGroup) => {
-                               rowByStudentGroup.append($("<td/>")
-                                                    .prop("id", `ti-${timeslot.timeslotId}-st-${studentGroup}`)
-                                                    .prop("class", `droppable`));
-                    });
+                $.each(studentGroupList, (index, studentGroup) => {
+                    rowByStudentGroup.append($("<td/>")
+                        .prop("id", `ti-${timeslot.timeslotId}-st-${studentGroup}`)
+                        .prop("class", `droppable`));
+                });
 
-
-        /*
-        ---------------------------------------
-        Preferences enlisting of timeslots
-        ---------------------------------------
-        */
-        timeslotPreferences
-               .append($(`<option value= ${timeslot.timeslotId}>`).text(`
-               ${timeslot.dayOfWeek.charAt(0) + timeslot.dayOfWeek.slice(1).toLowerCase()}
-               ${moment(timeslot.startTime, "HH:mm:ss").format("HH:mm")}
-               -
-               ${moment(timeslot.endTime, "HH:mm:ss").format("HH:mm")}`)
-               .append($("<option/>")));
+                firstRow = "";
 
         });
+        //Save lastday
+        slots.push(slotsADay);
+        $(".firstRow").each(function(){
+            var dIndex= $(this).attr('class').slice(12);
+            $(this).prepend($("<td/>").attr('rowspan', slots[dIndex]).prop('class', 'align-middle').html(`<div style = "writing-mode: vertical-rl; font-size: 140%; padding:0"> <big>${dutchDayNames[dIndex]} </big></div>`));
+        });
+
 
         /***
         ---------------------------------------
@@ -207,75 +270,110 @@ function refreshTimeTable() {
             var teachersOfLessonTask = [...new Set(lessonTask.taughtBy)];
             var lessonsOfLessonTask = [...new Set(lessonTask.lessonsOfTaskList)];
             const color = pickColor(teachersOfLessonTask[0].acronym);
-            const lessonElementWithoutDelete = $(`<div class="card draggable" style="background-color: ${color}; width: 350px"/>`);
-            const cardTextTeacher = $(`<h5 class="card-title ml-2 mb-1"/>`);
+            const lessonElementWithoutDelete = $(`<div class="card draggable"/>`).css({"width": cardWidth, "height": cardHeight});
+
+            const cardTextTeacher = $(`<h3 class="card-title ml-2 mb-1 teachers"   style ="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold" />`);
+            var teacherNames ="";
+            var teacherCoverId;
             $.each(teachersOfLessonTask, (index, teacher) => {
+                teacherCoverId = teacher.coverId;
                 cardTextTeacher
                     .append(`${teacher.acronym} `);
+                teacherNames = teacherNames + teacher.acronym + " ";
             });
-            lessonElementWithoutDelete
-                        .append(cardTextTeacher);
-            lessonElementWithoutDelete
-                        .append($(`<div class="card-body p-2"/>`)
+            cardTextTeacher.attr('title', teacherNames);
+
+            //SetCOVER
+            var coverResource = "covers/teacher"+ teacherCoverId +".jpg";
+            lessonElementWithoutDelete.append($(`<img class="card-img-top" src="${coverResource}" alt="hallo">`).css({"max-width": cardWidth, "max-height": cardHeight, "opacity": "0.7"}));
+            const overlay = $("<div/>").prop("class", "card-img-overlay");
+
+            overlay.append(cardTextTeacher);
+            overlay.append($(`<div class="card-body p-2"/>`)
                         .append($(`<h6 class="card-text ml-2 mb-1"/>`).append($(`<em/>`).text(lessonTask.subject))
-                        .append($(`<p class="ml-2 mt-1 card-text text-muted align-bottom float-right"/>`).text(lessonTask.taskNumber))));
-            const cardTextStudentGroup = $(`<p class="card-text ml-2 mb-1"/>`).append($(`<em/>`).text("for "));
+                        .append($(`<p class="ml-2 mt-1 card-text align-bottom float-right" style= "font-size: 110%; font-weight: bold"/>`).text(lessonTask.taskNumber))))
+                        .append($("<hr/>").css({"margin":"0", "border-top":"2px solid #2c2b2b"}));
+            const cardTextStudentGroup = $(`<p class="card-text ml-2 mb-1 students" style ="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: bold"/>`).append($(`<em/>`).text("lln. "));
+            var studentNames = "";
             $.each(studentGroupsOfLessonTask, (index, studentGroup) => {
                 cardTextStudentGroup
                       .append($(`<em/>`).text(`${studentGroup.groupName} `));
+                studentNames = studentNames + studentGroup.groupName + " ";
             });
-            lessonElementWithoutDelete
-                            .append(cardTextStudentGroup);
+            cardTextStudentGroup.attr('title', studentNames);
+
+            overlay.append(cardTextStudentGroup);
+
+            lessonElementWithoutDelete.append(overlay);
+
             $.each(lessonsOfLessonTask, (index, lesson) => {
                 const lessonElement = lessonElementWithoutDelete.clone();
-                lessonElement.find(".card-body").prepend(
-                    $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
-                    .append($(`<small class="fas fa-trash"/>`)).click(() => deleteLesson(lesson))
+                lessonElement.find(".card-title").prepend(
+                    $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right delete"/>`)
+                    .append($(`<small class="fas fa-trash"/>`))
                 );
                 //PINNING OPTION TO CARD
                 if (lesson.pinned == true) {
-                    lessonElement.find(".card-body").prepend(
-                          $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
-                        .append(`<small class = "fas fa-lock" />`).click(() =>changePinLesson(lesson))
+                    lessonElement.find(".card-title").prepend(
+                          $(`<button type="button" class = "ml-2 btn btn-light btn-sm p-1 float-right pin lock"/>`)
+                        .append(`<small class = "fas fa-lock" />`)
                     );
                 } else {
-                     lessonElement.find(".card-body").prepend(
-                       $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right"/>`)
-                       .append(`<small class = "fas fa-unlock" />`).click(() =>changePinLesson(lesson))
+                     lessonElement.find(".card-title").prepend(
+                       $(`<button type="button" class = "ml-2 btn btn-light btn-sm p-1 float-right pin unlock"/>`)
+                       .append(`<small class = "fas fa-unlock" />`)
                      );
                 }
 
                 //COUPLING OPTION TO CARD
 
                 if (lessonTask.coupled == true) {
-                     lessonElement.find(".card-body").prepend(
-                          $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right" data-toggle="modal" data-target="#lessonBlockDialog"/>`)
-                          .append(`<span class = "fas fa-link" />`).click(() => fetchRelatedLessonBlocks(lessonTask))
+                     lessonElement.find(".card-title").prepend(
+                          $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right couple link" data-toggle="modal" data-target="#lessonBlockDialog"/>`)
+                          .append(`<span class = "fas fa-link" />`)
                     );
                 }
                 else {
-                     lessonElement.find(".card-body").prepend(
-                           $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right" data-toggle="modal" data-target="#lessonBlockDialog"/>`)
-                           .append(`<small class = "fas fa-unlink" />`).click(() => fetchRelatedLessonBlocks(lessonTask))
+                     lessonElement.find(".card-title").prepend(
+                           $(`<button type="button" class="ml-2 btn btn-light btn-sm p-1 float-right couple unlink" data-toggle="modal" data-target="#lessonBlockDialog"/>`)
+                           .append(`<small class = "fas fa-unlink" />`)
                      );
                 }
 
-                //PLACING CARDS
-
+                //*************PLACING CARDS**********************
+                //**** ID CARDS:
+                //** assigned: ' le-{lessonId}-st/ro/te- {st.name/ro.id/te.acronym}'
+                //** unassigned: ' le-{lessonId}-un- as '
+                var id;
                 if (lesson.timeslot == null ) {
-                    unassignedLessons.append(lessonElement.prop('id', `le-${lesson.lessonId}-un-as`));
+                    id = `le-${lesson.lessonId}-un-as`;
+                    unassignedLessons.append(lessonElement.prop('id', id));
+                    setClickers(lessonElement, lesson.lessonId, lessonTask, id);
                 } else {
+                    var clone;
                     $.each(teachersOfLessonTask, (index, teacher) => {
-                        $(`#ti-${lesson.timeslot.timeslotId}-te-${teacher.acronym}`).append(lessonElementWithoutDelete.clone().prop('id',`le-${lesson.lessonId}-te-${teacher.acronym}`));
+                        id = `le-${lesson.lessonId}-te-${teacher.acronym}`
+                        clone = lessonElement.clone().prop('id', id);
+                        setClickers(clone, lesson.lessonId, lessonTask, id);
+                        $(`#ti-${lesson.timeslot.timeslotId}-te-${teacher.acronym}`).append(clone);
                     });
                     $.each(studentGroupsOfLessonTask, (index, studentGroup) => {
-                    $(`#ti-${lesson.timeslot.timeslotId}-st-${studentGroup.groupName}`).append(lessonElementWithoutDelete.clone().prop('id',`le-${lesson.lessonId}-st-${studentGroup.groupName}`));
+                        id = `le-${lesson.lessonId}-st-${studentGroup.groupName}`
+                        clone = lessonElement.clone().prop('id', id);
+                        setClickers(clone, lesson.lessonId, lessonTask, id);
+                        $(`#ti-${lesson.timeslot.timeslotId}-st-${studentGroup.groupName}`).append(clone);
                     });
+
                     if (lesson.room == null) {
-                        $(`#ti-${lesson.timeslot.timeslotId}-ro-0`).append(lessonElement.prop('id', `le-${lesson.lessonId}-ro-0`));
+                        id = `le-${lesson.lessonId}-ro-0`;
+                        lessonElement.prop('id', id);
+                        $(`#ti-${lesson.timeslot.timeslotId}-ro-0`).append(lessonElement);
                     } else {
-                        $(`#ti-${lesson.timeslot.timeslotId}-ro-${lesson.room.roomId}`).append(lessonElement.prop('id', `le-${lesson.lessonId}-ro-${lesson.room.roomId}`));
+                        id = `le-${lesson.lessonId}-ro-${lesson.room.roomId}`;
+                        lessonElement.prop('id', id);
+                        $(`#ti-${lesson.timeslot.timeslotId}-ro-${lesson.room.roomId}`).append(lessonElement);
                     }
+                    setClickers(lessonElement, lesson.lessonId, lessonTask, id);
                 }
             });
         });
@@ -302,94 +400,170 @@ function refreshTimeTable() {
             DRAGGING CARDS SETTINGS
             ---------------------------------------
             */
-
-                $(".draggable").draggable({
-                    helper: "clone",
-                    opacity: 0.5,
-                    start: function(event,ui){
-                        $(this).hide();
-                        ui.helper.css("width", "300px");
-                        ui.helper.css("height", "120px")},
-                    stop: function(event, ui){
-                            $(this).show();
-
-                    }
-                }
-                );
-                $(".droppable").droppable({
-                hoverClass: "ui-state-active",
-                drop: function(event, ui){
-
-                    var draggedId = ui.draggable.attr('id');
-                    var droppedId = $(this).attr('id');
-                    var childDropId = $(this).find(".card").attr('id');
-                    //CONVERT -> extract First and second ID
-                    var draggedIdVals = cardIdConvertor(draggedId, "-");
-                    var dragLessonId = getFirstTagId(draggedIdVals);
-                    var dragOtherId = getOtherCardTagId(draggedIdVals);
-                    //Drag to empty slot OR TO DO: UNASSIGNED LESSON
-                    var droppedIdVals;
-                    var notIdentical = false;
-                    if (childDropId == null) {
-                        droppedIdVals = cardIdConvertor(droppedId, "-");
-                    } else{
-                        droppedIdVals = cardIdConvertor(childDropId, "-");
-                    }
-                    var dropOtherTag = getOtherCardTag(droppedIdVals);
-                    var dropOtherId = getOtherCardTagId(droppedIdVals);
-                    var dropFirstId = getFirstTagId(droppedIdVals);
-                    var dropFirstTag = getFirstTag(droppedIdVals);
-                    if (dropOtherTag == "ro" || dragOtherId == dropOtherId){
-                        $.post("/lessons/changeTiRoTe/dragLessonId/" + dragLessonId +"/"+dropOtherTag +"/"+ dropOtherId +"/"+ dropFirstTag +"/"+dropFirstId, JSON.stringify({
-                                                                      }), function() {
-                                                                           refreshTimeTable();
-                                                                      }).fail(function(xhr, ajaxOptions, thrownError) {
-                                                                          showError("Updating lesson failed.", xhr);
-                                                                      });
-
-                    } else {
-                    var dragOtherTag =getOtherCardTag(draggedIdVals);
-                    if (dragOtherTag == "un") {
-                        $.get("/lessons/"+ dragLessonId, function(lesson) {
-                        var canChange = false;
-                        if (dropOtherTag == "te") {
-                            const teachOfLesson = [...new Set(lesson.taughtBy)];
-                            $.each(teachOfLesson, (index, teacher) => {
-                                if (teacher.acronym == dropOtherId) {
-                                    canChange = true;
-                                }
-                            });
-                        }
-                        if (dropOtherTag == "st") {
-                            const studGroups = [...new Set(lesson.studentGroups)];
-                            $.each(studGroups, (index, studentGroup) => {
-                                   if (studentGroup.groupName == dropOtherId) {
-                                        canChange = true;
-                                   }
-                            });
-
-                        }
-
-                        if (canChange) {
-                        $.post("/lessons/assignTimeSlot/" + dropFirstTag +"/" + dropFirstId + "/lessonId/" + dragLessonId, JSON.stringify({
-                                        }), function() {
-                                             refreshTimeTable();
-                                        }).fail(function(xhr, ajaxOptions, thrownError) {
-                                                showError("Updating lesson failed.", xhr);
-                                        });
-                        }
-                        }).fail(function(xhr, ajaxOptions, thrownError) {
-                                      showError("Lesson not found.", xhr);
-                        });
-
-                    }
-
-                    }
-
-                }});
+            setDraggable(1);
 
         });
 
+}
+
+
+function setDraggable(scale){
+
+    var cw = Math.floor(parseInt(cardWidth.slice(0, cardWidth.length - 2)) * scale);
+    var ch = Math.floor(parseInt(cardHeight.slice(0, cardHeight.length - 2)) * scale);
+
+    function startFix(event, ui) {
+        $(this).hide();
+        ui.position.left = 0;
+        ui.position.top = 0;
+
+    }
+
+    function dragFix(event, ui) {
+        scaleFactor = scale;
+        var changeLeft = ui.position.left - ui.originalPosition.left; // find change in left
+        var newLeft = ui.originalPosition.left + changeLeft / scale; // adjust new left by our zoomScale
+
+        var changeTop = ui.position.top - ui.originalPosition.top; // find change in top
+        var newTop = ui.originalPosition.top + changeTop / scale; // adjust new top by our zoomScale
+
+        ui.position.left = newLeft;
+        ui.position.top = newTop;
+    }
+
+   const draggableConfig = {
+        helper: "clone",
+        refreshPositions: true,
+        opacity: 0.5,
+        start: startFix,
+        drag: dragFix,
+        stop: function(event, ui){
+            $(this).show();
+        }
+    }
+
+    $(".draggable").draggable(draggableConfig);
+    $(".draggable").on('dragstart', function(event,ui){
+        scaleFactor = scale;
+    });
+
+    $(".droppable").droppable({
+    accept: ".draggable",
+    tolerance: 'pointer',
+    hoverClass: "ui-state-active",
+    drop: function(event, ui){
+        var cardDrag = ui.draggable;
+        var draggedId = ui.draggable.attr('id');
+        var droppedId = $(this).attr('id');
+        //var childDropId = $(this).find(".card").attr('id'); //needed for swapping <- disabled
+        //CONVERT -> extract First and second ID
+        var draggedIdVals = convertor(draggedId, "-");
+        var dragLessonId = getFirstTagId(draggedIdVals);
+        var dragOtherTag = getOtherCardTag(draggedIdVals);
+        var dragOtherId = getOtherCardTagId(draggedIdVals);
+        //Drag to empty slot OR TO DO: UNASSIGNED LESSON
+        var droppedIdVals = convertor(droppedId, "-");
+        var notIdentical = false;
+/*                    if (childDropId == null) { // for swapping <-disabled
+                        droppedIdVals = convertor(droppedId, "-");
+                    } else{
+                        droppedIdVals = convertor(childDropId, "-");
+                    } */
+        //var dropFirstTag = getFirstTag(droppedIdVals);
+        var dropFirstId = getFirstTagId(droppedIdVals);
+        var dropOtherTag = getOtherCardTag(droppedIdVals);
+        var dropOtherId = getOtherCardTagId(droppedIdVals);
+
+        // CASE dragCard is already assigned
+        if (dragOtherTag != "un") {
+            if (dropOtherTag == "ro" || dragOtherId == dropOtherId){
+                $.post("/lessons/changeTiRoTe/dragLessonId/" + dragLessonId + "/" + dropOtherTag + "/" + dropOtherId +"/" + dropFirstId, JSON.stringify({
+                    }), function() {
+                            changeCardPosition(cardDrag, dragLessonId, dragOtherTag, dropFirstId, dropOtherId, draggableConfig);
+                            adjustTableSizeInFS(dropOtherTag);
+                    }
+                ).fail(function(xhr, ajaxOptions, thrownError) {
+                    showError("Updating lesson failed.", xhr);
+                });
+            }
+        } else  {
+            const values = canSetCardForList(cardDrag, dropOtherTag, dropOtherId)
+            if (values.length > 0) {
+                $.post("/lessons/changeTiRoTe/dragLessonId/" + dragLessonId + "/"+dropOtherTag +"/"+ dropOtherId +"/" + dropFirstId, JSON.stringify({
+                            }), function() {
+                            $.get("/lessons/" + dragLessonId, function(lesson) {
+                                var newCard;
+                                var newId;
+                                var toId;
+
+                                for (let i = 0; i < 3; i++){
+                                    var tag = values[i][0];
+                                    var ids = values[i][1];
+                                    for (let j = 0; j < ids.length; j++){
+                                        newId = "le-" + dragLessonId + "-" + tag + "-" + ids[j];
+                                        toId = "ti-" + dropFirstId + "-" + tag + "-" + ids[j];
+                                        newCard = cardDrag.clone().prop({ id: newId, class: "card draggable"});
+                                        newCard.find(".couple").click(() => fetchRelatedLessonBlocksByTask(lesson.taskNumber));
+                                        newCard.find(".pin").click(() => changePinLesson(dragLessonId));
+                                        newCard.find(".delete").click(() => deleteLesson(dragLessonId));
+                                        $("#" + toId).append(newCard);
+                                        makeDraggable(newCard, draggableConfig);
+                                    }
+
+                                }
+                                cardDrag.remove();
+                                adjustTableSizeInFS(dropOtherTag);
+                            });
+                }).fail(function(xhr, ajaxOptions, thrownError) {
+                     showError("Updating lesson failed.", xhr);
+                });
+                }
+            }
+        }
+   });
+
+}
+
+function adjustTableSizeInFS(dropOtherTag){
+    var themeValues = {"st": "StudentGroup", "te": "Teacher", "ro": "Room"};
+    var theme = themeValues[dropOtherTag];
+    var oldScale = $("#timeTableBy"+theme).prop("scale");
+    if (inFullScreen()){
+        var height = window.screen.height;
+        var width = window.screen.width;
+        var tableHeight = $("#timeTableBy"+theme).get(0).clientHeight * oldScale;
+        var tableWidth = $("#timeTableBy"+theme).get(0).clientWidth * oldScale;
+        if (tableHeight > height || tableHeight + 4 < height || tableWidth > width || tableWidth + 4 < width){
+            rescaleTable(theme)
+        }
+    }
+}
+
+function makeDraggable(newCard, configuration){
+    newCard.draggable(configuration);
+}
+
+/*function setTextOverFlow(lesElement) {
+    lesElement.find(".teachers").mouseover(function() {
+        $(this).css("text-overflow","");
+        $(this).css("overflow","visible");
+    }).mouseout(function() {
+        $(this).css("overflow","hidden");
+        $(this).css("text-overflow", "ellipsis")
+    });
+    lesElement.find(".students").mouseover(function() {
+            $(this).css("text-overflow","");
+            $(this).css("overflow","visible");
+        }).mouseout(function() {
+            $(this).css("overflow","hidden");
+            $(this).css("text-overflow", "ellipsis")
+        });
+}*/
+
+function setClickers(lesElement, lessonId, lessonTask, tabId) {
+    lesElement.find(".delete").click(() => deleteLesson(lessonId));
+    lesElement.find(".couple").click(() => fetchRelatedLessonBlocks(lessonTask));
+    lesElement.find(".pin").click(() => changePinLesson(lessonId));
 }
 
 
@@ -405,6 +579,7 @@ function solve() {
         showError("Start solving failed.", xhr);
     });
 }
+
 
 function refreshSolvingButtons(solving) {
     if (solving) {
@@ -458,9 +633,10 @@ function addLesson() {
 }
 
 
-function deleteLesson(lesson) {
-    $.delete("/lessons/" + lesson.lessonId, function() {
-        refreshTimeTable();
+function deleteLesson(lessonId) {
+    $.delete("/lessons/" + lessonId, function() {
+    //Remove all cards
+        $("[id*= le-" + lessonId + "]").remove();
     }).fail(function(xhr, ajaxOptions, thrownError) {
         showError("Deleting lesson (" + lesson.name + ") failed.", xhr);
     });
@@ -487,8 +663,7 @@ function fetchRelatedLessonBlocks(lessonTask){
     var lessonBlockSizeList = lessonTask.couplingNumbers;
     if (lessonBlockSizeList.length != 0) {
         $.each(lessonBlockSizeList, (index, lesBlockSize)=>{
-            alert(lesBlockSize);
-            lesBlockOverview
+        lesBlockOverview
                 .append($(`<option value= ${lesBlockSize}>`).text("Block" + (index+1).toString()+ " - #"+lesBlockSize.toString())
                 .append($("<option/>")));
         });
@@ -507,7 +682,6 @@ function fetchRelatedLessonBlocksByTask(taskId){
     var lessonBlockSizeList = lessonTask.couplingNumbers;
     if (lessonBlockSizeList.length != 0) {
         $.each(lessonBlockSizeList, (index, lesBlockSize)=>{
-            alert(lesBlockSize);
             lesBlockOverview
                 .append($(`<option value= ${lesBlockSize}>`).text("Block" + (index+1).toString()+ " - #"+lesBlockSize.toString())
                 .append($("<option/>")));
@@ -547,16 +721,37 @@ function fetchRelatedLessonBlocksByTask(taskId){
 function coupleToLessonBlock() {
     var size= $("#sizeForNewLessonBlock").val();
     var taskId= $("#lessonIdForLessonBlock").val();
-    alert(taskId)
     $.post("/lessonTasks/addCouplingOfSize/"+ size +"/ForTask/"+ taskId, JSON.stringify({
     }),
     function() {
-        refreshTimeTable();
-        fetchRelatedLessonBlocksByTask(taskId);
+        $.get("/lessonTasks/" + taskId, function(lessonTask) {
+
+            if (lessonTask.coupled == true) {
+                var lessonsOfLessonTask = [...new Set(lessonTask.lessonsOfTaskList)];
+                $.each(lessonsOfLessonTask, (index, lesson) => {
+                    var cardCopies = $("[id*= le-" + lesson.lessonId + "]");
+                    var displayedAsUnlinked = cardCopies.find(".unlink").length > 0;
+
+                    if (displayedAsUnlinked) {
+                        cardCopies.each(function() {
+
+                        $(this).find(".couple")
+                            .before($(`<button type="button" class = "ml-2 btn btn-light btn-sm p-1 float-right couple link" data-toggle="modal" data-target="#lessonBlockDialog"/>`)
+                            .append(`<small class = "fas fa-link" />`)
+                            .click(()=>fetchRelatedLessonBlocks(lessonTask)));
+                        $(this).find(".unlink")
+                            .remove();
+                        });
+                    }
+                });
+            }
+            fetchRelatedLessonBlocks(lessonTask);
+        });
+
     }).fail(function(xhr, ajaxOptions, thrownError) {
         showError("Adding new lessonblock failed.", xhr);
     });
-    }
+}
 
 function uncoupleFromLessonBlock() {
 
@@ -566,8 +761,28 @@ function uncoupleFromLessonBlock() {
     $.post("/lessonTasks/removeCouplingOfSize/" + size +"/FromTask/" +taskId, JSON.stringify({
     }),
     function() {
-        refreshTimeTable();
-        fetchRelatedLessonBlocksByTask(taskId);
+        $.get("/lessonTasks/" + taskId, function(lessonTask) {
+            if (lessonTask.coupled == false) {
+                var lessonsOfLessonTask = [...new Set(lessonTask.lessonsOfTaskList)];
+                $.each(lessonsOfLessonTask, (index, lesson) => {
+                    var cardCopies = $("[id*= le-" + lesson.lessonId + "]");
+                    var displayedAslinked = cardCopies.find(".link").length > 0;
+
+                    if (displayedAslinked) {
+                        cardCopies.each(function() {
+
+                        $(this).find(".couple")
+                            .before($(`<button type="button" class = "ml-2 btn btn-light btn-sm p-1 float-right couple unlink" data-toggle="modal" data-target="#lessonBlockDialog"/>`)
+                            .append(`<small class = "fas fa-unlink" />`)
+                            .click(()=> fetchRelatedLessonBlocks(lessonTask)));
+                        $(this).find(".link")
+                            .remove();
+                        });
+                    }
+                });
+            }
+            fetchRelatedLessonBlocks(lessonTask);
+        });
     }).fail(function(xhr, ajaxOptions, thrownError) {
         showError("Verwijderen van lesblok is mislukt.", xhr);
     });
@@ -615,14 +830,40 @@ function uncoupleFromLessonBlock() {
 
 }*/
 
-function changePinLesson(lesson) {
-    $.post("/lessons/changePin/" + lesson.lessonId, JSON.stringify({
-        "lessonId": lesson.lessonId
+function changePinLesson(lessonId) {
+    $.post("/lessons/changePin/" + lessonId, JSON.stringify({
+        "lessonId": lessonId
     }), function() {
-        refreshTimeTable();
+        /*refreshTimeTable();*/
+        const cardCopies = $("[id*= le-" + lessonId + "]");
+        const unpinned = cardCopies.find(".unlock").length > 0;
+        if (unpinned) {
+            cardCopies.each(function() {
+
+                $(this).find(".pin")
+                       .before($(`<button type="button" class = "ml-2 btn btn-light btn-sm p-1 float-right pin lock"/>`)
+                       .append(`<small class = "fas fa-lock" />`)
+                       .click(() => changePinLesson(lessonId)));
+                $(this).find(".unlock")
+                       .remove();
+            });
+        } else {
+            cardCopies.each(function() {
+
+                $(this).find(".pin")
+                       .before($(`<button type="button" class = "ml-2 btn btn-light btn-sm p-1 float-right pin unlock"/>`)
+                       .append(`<small class = "fas fa-unlock" />`)
+                       .click(()=>changePinLesson(lessonId)));
+                $(this).find(".lock")
+                       .remove();
+            });
+        }
     }).fail(function(xhr, ajaxOptions, thrownError) {
         showError("Locking lesson (" + lesson.subject + ") failed.", xhr);
     });
+}
+function openFullScreen(id) {
+    $("#refreshButton").requestFullscreen();
 }
 
 function changeLastResort(timeslot) {
@@ -652,9 +893,9 @@ function addTimeslot() {
 }
 
 function addStudentGroup() {
-    const putInfo = $("#info_view");
+    /*const putInfo = $("#info_view");*/
     var name = $("#newStudentGroup").val().trim();
-    putInfo.append($("<option>").text(name).append($("<option/>")));
+    /*putInfo.append($("<option>").text(name).append($("<option/>")));*/
     $.post("/studentGroups/add/" + name, JSON.stringify({
         "studentGroup": name
     }), function() {
@@ -666,11 +907,16 @@ function addStudentGroup() {
 }
 
 function deleteTimeslot(timeslot) {
-    $.delete("/timeslots/" + timeslot.timeslotId, function() {
-        refreshTimeTable();
-    }).fail(function(xhr, ajaxOptions, thrownError) {
-        showError("Deleting timeslot (" + timeslot.name + ") failed.", xhr);
+    $.post("/lessons/resetTimeslots/" + timeslot.timeslotId, JSON.stringify({}), function(){
+        $.delete("/preferences/onlyByTimeslot/" + timeslot.timeslotId, function(){
+         // AFTER TIMESLOTS ARE EMPTIED -LESHOUR Is DELETED?
+         refreshTimeTable();
+        }).fail(function(xhr, ajaxOptions, thrownError) {
+                        showError("Deleting preferences with timeslot (" + timeslot.timeslotId + ") failed.", xhr);
+        });
     });
+
+
 }
 
 function addRoom() {
@@ -694,49 +940,26 @@ function deleteRoom(room) {
 }
 
 
-function addPreference() {
-    var timeslotId = $("#preference_timeslot").val().trim();
-    $.get("/timeslots/" + timeslotId, function(timeslot) {
-            var acronym = $("#preference_teacher").val().trim();
-            $.get("/teachers/" + acronym, function(teacher) {
-                     $.post("/preferences", JSON.stringify({
-                            "teacher": teacher,
-                            "timeslot": timeslot
-                     }), function() {
-                            refreshTimeTable();
-                     });
-            });
-    }).fail(function(xhr, ajaxOptions, thrownError) {
-            showError("Adding lesson failed.", xhr);
-    });
+function extractConstraintsViolation() {
+        $.get("/timeTable/summary/", function(constraintsValues) {
+            const tableBody = $("#info_view").find("tbody");
+            tableBody.empty();
+            var length = constraintsValues.length / 2;
+            for (let index = 0; index < length; index++){
 
-/*            $.post("/timeslots", JSON.stringify({
-                "timeslot": timeslot}), function() {
+                var row = $(`<tr />`);
+                row.append($(`<th/>`).text(constraintsValues[2 * index].slice(28)));
+                row.append($("<td/>").text(constraintsValues[2 * index + 1]));
+                tableBody.append(row);
 
-                });*/
-/*            var acronym = $("#preference_teacher").val().trim();
-            $.get("/teachers/" + acronym, function(teacher) {
-                $.post("/preferences", JSON.stringify({
-                    "teacher": teacher,
-                    "timeslot": timeslot
-                }), function() {
-                        refreshTimeTable();
-                });
-            });*/
-/*    $.get("/timeslots/" + timeslotId, function(timeslot) {
-        $.put("/teachers/" + acronym, JSON.stringify({
-            "acronym": acronym,
-            "timeslot": timeslot
-        }), function() {
-            refreshTimeTable();
+            }
+
         }).fail(function(xhr, ajaxOptions, thrownError) {
-                                  showError("Adding lesson (" + subject + ") failed.", xhr);
+            showError("Extracting constraintviolations failes.", xhr);
         });
-    }).fail(function(xhr, ajaxOptions, thrownError) {
-                  showError("Adding lesson (" + subject + ") failed.", xhr);
-              });*/
-    $('#preferenceDialog').modal('toggle');
 }
+
+
 /*
 function deletePreference(preference) {
     $.delete("/preferences/" + preference.id, function() {
@@ -745,7 +968,6 @@ function deletePreference(preference) {
         showError("Deleting preferences for (" + preference.teacher + ") failed.", xhr);
     });
 }*/
-
 
 function showError(title, xhr) {
     const serverErrorMessage = !xhr.responseJSON ? `${xhr.status}: ${xhr.statusText}` : xhr.responseJSON.message;
@@ -810,6 +1032,11 @@ $(document).ready(function() {
     $("#solveButton").click(function() {
         solve();
     });
+
+    $("#infoScoreButton").click(function() {
+        extractConstraintsViolation();
+    });
+
     $("#stopSolvingButton").click(function() {
         stopSolving();
     });
@@ -830,6 +1057,17 @@ $(document).ready(function() {
         addPreference();
     });
 
+
+   $("#preferencePerTeacherNav").click(function(){
+        var win = window.open("overview/preferencePerTeacher.html", '_blank', 'width = 800, height = 550');
+        win.location.reload();
+   });
+
+   $("#themeConfigurationNav").click(function(){
+           var win = window.open("overview/themeConfiguration.html", '_blank', 'width = 800, height = 550');
+           win.location.reload();
+   });
+
     //Select multiple options in lesson_studentGroups without using ctrl
     $("#lesson_fields").mousedown(function(e){
         e.preventDefault();
@@ -844,10 +1082,125 @@ $(document).ready(function() {
         $(select ).focus();
     }).mousemove(function(e){e.preventDefault()});
 
+    addEventListener("fullscreenchange", function(event){
+        if(!document.fullscreenElement){
+            afterFullScreenEvent();
+        }
+    }, false);
+
    refreshTimeTable();
 
+
+/*    .click(function(){
+        alert("Hallo")
+      // if already full screen; exit
+      // else go fullscreen
+      if (
+        document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement
+      ) {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          document.mozCancelFullScreen();
+        } else if (document.webkitExitFullscreen) {
+          document.webkitExitFullscreen();
+        } else if (document.msExitFullscreen) {
+          document.msExitFullscreen();
+        }
+      } else {
+        element = $('#byTeacher').get(0);
+        if (element.requestFullscreen) {
+          element.requestFullscreen();
+        } else if (element.mozRequestFullScreen) {
+          element.mozRequestFullScreen();
+        } else if (element.webkitRequestFullscreen) {
+          element.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+        } else if (element.msRequestFullscreen) {
+          element.msRequestFullscreen();
+        }
+      }
+    });*/
 });
 
+function inFullScreen(){
+    return ( document.fullscreenElement ||
+             document.webkitFullscreenElement ||
+             document.mozFullScreenElement ||
+             document.msFullscreenElement)
+}
+
+
+function setToFullScreen(theme){
+    var scale = 5;
+      if ( inFullScreen()) {
+            var exit = false;
+            if (document.exitFullscreen) {
+              afterFullScreenEvent();
+              document.exitFullscreen();
+            } else if (document.mozCancelFullScreen) {
+              afterFullScreenEvent();
+              document.mozCancelFullScreen();
+            } else if (document.webkitExitFullscreen) {
+              afterFullScreenEvent();
+              document.webkitExitFullscreen();
+            } else if (document.msExitFullscreen) {
+              afterFullScreenEvent();
+              document.msExitFullscreen();
+            }
+          } else {
+
+            $("#resp" +theme).css("height", "");
+            rescaleTable(theme);
+            $("#by"+theme).css("background-color", "rgba(255,255,255)");
+
+            element = $("#by"+theme).get(0);
+
+            if (element.requestFullscreen) {
+              element.requestFullscreen();
+            } else if (element.mozRequestFullScreen) {
+              element.mozRequestFullScreen();
+            } else if (element.webkitRequestFullscreen) {
+              element.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
+            } else if (element.msRequestFullscreen) {
+              element.msRequestFullscreen();
+            }
+          }
+}
+
+function rescaleTable(theme){
+
+    var height = window.screen.height;
+    var width = window.screen.width;
+
+    var tableHeight = $("#timeTableBy"+theme).get(0).clientHeight;
+    var tableWidth = $("#timeTableBy"+theme).get(0).clientWidth;
+
+    var xTableScale = ( width / tableWidth - 0.001).toPrecision(3);
+    var yTableScale = ( height / tableHeight - 0.001).toPrecision(3);
+    var tableScale = Math.min(xTableScale, yTableScale);
+
+
+    var table =$("#timeTableBy"+theme);
+    table.css("transform-origin", "0 0")
+    table.css("transform", `scale(${tableScale})`);
+    table.prop('scale', `${tableScale}`);
+
+    setDraggable(tableScale);
+
+}
+
+function afterFullScreenEvent(){
+
+    setDraggable(1);
+    $(".draggable").css('width', cardWidth);
+    $(".table").removeAttr('style');
+    $(".table-responsive").removeAttr('style');
+    $(".table-responsive").css("height", "500px");
+
+}
 
 // ****************************************************************************
 // TangoColorFactory
@@ -905,7 +1258,7 @@ function buildPercentageColor(floorColor, ceilColor, shadePercentage) {
 //Convertor
 //********************************************************
 
-function cardIdConvertor(encoded, separationValue) {
+function convertor(encoded, separationValue) {
     var newName = "";
     let listOfNames = [];
     for (let symbol of encoded) {
@@ -932,4 +1285,93 @@ function getOtherCardTag(listOfNames){
 }
 function getOtherCardTagId(listOfNames){
     return listOfNames[3];
+}
+
+function changeCardPosition(cardDrag, dragLessonId, dragOtherTag, dropFirstId, dropOtherId, draggableConfig){
+
+    const values = [];
+    var tes = convertor(cardDrag.find(".teachers").last().text(), " ");
+    values.push(["te", tes]);
+
+    var sts = convertor(cardDrag.find(".students").children().text(), " ");
+    values.push(["st", sts.slice(1)]);
+
+    $.get("/lessons/"+ dragLessonId, function(lesson) {
+            values.push(["ro", [lesson.room.roomId]]);
+            var parentTabIdVals =  convertor(cardDrag.parent().attr('id'), "-");
+            var parentTabFirstId = getFirstTagId(parentTabIdVals);
+
+            for (let i = 0; i < 3; i++){
+                var tag = values[i][0];
+                var ids = values[i][1];
+                var val;
+                for (let j = 0; j < ids.length; j++){
+                    if (dragOtherTag == "ro" && tag == "ro"){
+                        val = getOtherCardTagId(parentTabIdVals);
+                    } else {
+                        val = ids[j];
+                    }
+
+                    //var fromId = "ti-" + parentTabFirstId + "-" + tag + "-" + val;
+                    var fromId = "le-" + dragLessonId + "-" + tag + "-" + val;
+                    var newId = "le-" + dragLessonId + "-" + tag + "-" + ids[j];
+                    var toId = "ti-" + dropFirstId + "-" + tag + "-" + ids[j];
+                    var newCard = cardDrag.clone().prop({ id: newId, class: "card draggable"});
+                    removeCard(fromId);
+                    newCard.find(".couple").click(() => fetchRelatedLessonBlocksByTask(lesson.taskNumber));
+                    newCard.find(".pin").click(() => changePinLesson(dragLessonId));
+                    newCard.find(".delete").click(() => deleteLesson(dragLessonId));
+                    $("#" + toId).append(newCard);
+                    makeDraggable(newCard, draggableConfig);
+                }
+            }
+        }).fail(function(xhr, ajaxOptions, thrownError) {
+                       showError("Extracting room for lesson (" + dragLessonId + ") failed.", xhr);
+        });
+
+}
+
+function removeCard(id){
+    $("#" + id).remove();
+}
+function emptyTab(id) {
+    $("#" + id).empty();
+}
+
+function canSetCardForList(cardDrag, dropOtherTag, dropOtherId){
+
+    var canChange = false
+    var roomId = "0";
+    const values = [];
+
+     var tes = convertor(cardDrag.find(".teachers").last().text(), " ");
+     var sts = convertor(cardDrag.find(".students").children().text(), " ");
+
+    if (dropOtherTag == "ro") {
+        canChange = true;
+        roomId = dropOtherId;
+    }
+
+    if (dropOtherTag == "te") {
+        for (let i =0; i < tes.length; i++){
+            if (tes[i] == dropOtherId) {
+                canChange = true;
+            }
+        }
+    }
+
+    if (dropOtherTag == "st") {
+        for (let i =1; i < sts.length; i++){ //ignore 'FOR' in eg 'FOR' 6LAWE ...
+            if (sts[i] == dropOtherId) {
+                canChange = true;
+            }
+        }
+    }
+    if (canChange){
+        values.push(["ro", [roomId]]);
+        values.push(["st", sts.slice(1)]);
+        values.push(["te", tes])
+    }
+
+    return values;
 }
