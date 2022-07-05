@@ -41,18 +41,20 @@ public class Teacher extends PanacheEntityBase implements Comparable<Teacher>{
 
     @ManyToMany(targetEntity = LessonTask.class,
             mappedBy = "taughtBy",
+            cascade = CascadeType.REMOVE,
             fetch = FetchType.EAGER)
     @JsonIgnore
     private Set<LessonTask> lessonTasks = new HashSet<>();
 
     @OneToMany(targetEntity = Preference.class,
-            cascade = CascadeType.MERGE,
+            cascade = CascadeType.REMOVE,
             mappedBy = "teacher")
     @JsonIgnore
     private List<Preference> preferenceList = new ArrayList<>();
 
     @ManyToMany(targetEntity = StudentGroup.class,
             mappedBy = "classTeachers",
+            cascade = CascadeType.REMOVE,
             fetch = FetchType.EAGER)
     @JsonIgnore
     private Set<StudentGroup> classTeacherOf = new HashSet<>();
@@ -130,6 +132,7 @@ public class Teacher extends PanacheEntityBase implements Comparable<Teacher>{
     public void setName(String name) {
         this.name = name;
     }
+    public void setAcronym(String acronym){this.acronym = acronym;}
 
 
 
@@ -142,7 +145,7 @@ public class Teacher extends PanacheEntityBase implements Comparable<Teacher>{
     }
 
     public Integer rightToHalfDays(){
-        return (hoursAwayFromFullTime +2) / 3;} // needs to be updated by call: updateRightToHalfDays()
+        return (hoursAwayFromFullTime + 2) / 3;} // needs to be updated by call: updateRightToHalfDays()
 
     //can faster?! --> necessary??
    public Integer halfDaysInPreferences(){

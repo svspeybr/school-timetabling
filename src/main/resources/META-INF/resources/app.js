@@ -21,11 +21,13 @@ function refreshTimeTable() {
         timeTableByStudentGroup.children().remove();
         const unassignedLessons = $("#unassignedLessons");
         unassignedLessons.children().remove();
+        unassignedLessons.append($(`<th scope="row"> </th>`))
         /*Preferences*/
         const teachersForNewLesson = $("#lesson_teachers");
         teachersForNewLesson.children().remove();
         const studentGroupsForNewLesson = $("#lesson_studentGroups");
         studentGroupsForNewLesson.children().remove();
+
 
         /*
         ---------------------------------------
@@ -347,7 +349,10 @@ function refreshTimeTable() {
                 var id;
                 if (lesson.timeslot == null ) {
                     id = `le-${lesson.lessonId}-un-as`;
-                    unassignedLessons.append(lessonElement.prop('id', id));
+                    lessonElement.prop('id', id);
+                    var liElement = $(`<td>`).append(lessonElement);
+                    liElement.append('</td>');
+                    unassignedLessons.append(liElement);
                     setClickers(lessonElement, lesson.lessonId, lessonTask, id);
                 } else {
                     var clone;
@@ -377,6 +382,8 @@ function refreshTimeTable() {
                 }
             });
         });
+
+
         /*
         ---------------------------------------
         ADDING NEW LESSON OPTIONS
@@ -385,27 +392,28 @@ function refreshTimeTable() {
         $.each(timeTable.studentGroupList, (index,studentGroup) => {
             studentGroupsForNewLesson
                            .append($(`<option value= ${studentGroup.groupName}>`).text(`${studentGroup.groupName}`)
-                           .append($("<option/>")));
+                           .append($("</option>")));
         });
 
         $.each(timeTable.teacherList, (index,teacher) => {
             teachersForNewLesson
                            .append($(`<option value= ${teacher.acronym}>`).text(`${teacher.acronym}`)
-                           .append($("<option/>")));
+                           .append($("</option>")));
         });
 
-
-            /*
-            ---------------------------------------
-            DRAGGING CARDS SETTINGS
-            ---------------------------------------
-            */
-            setDraggable(1);
-
+        /*
+        ---------------------------------------
+        DRAGGING CARDS SETTINGS
+        ---------------------------------------
+        */
+        setDraggable(1);
         });
 
 }
 
+function openFullScreen(id) {
+    $("#refreshButton").requestFullscreen();
+}
 
 function setDraggable(scale){
 
@@ -572,6 +580,7 @@ function convertToId(str) {
     return btoa(str).replace(/=/g, "");
 }
 
+//******************************************SOLVING***********************************************//
 function solve() {
     $.post("/timeTable/solve", function() {
         refreshSolvingButtons(true);
@@ -604,41 +613,6 @@ function stopSolving() {
         refreshTimeTable();
     }).fail(function(xhr, ajaxOptions, thrownError) {
         showError("Stop solving failed.", xhr);
-    });
-}
-
-function addLesson() {
-   var teachersV = $("#lesson_teachers").val();
-    var teachers =""
-        $.each(teachersV, (index, teacher)=>{
-            teachers= teachers + teacher + "-"
-        });
-
-
-    var groups = $("#lesson_studentGroups").val();
-    var groupNames=""
-            $.each(groups, (index, group)=>{
-                groupNames = groupNames + group + "-"
-            });
-    var subject = $("#lesson_subject").val().trim();
-    var taskNumber = parseInt($("#lesson_taskNumber").val(),10);
-    var multiplicity = parseInt($("#lesson_multiplicity").val(),10);
-    $.post("/lessonTasks/add/" + multiplicity  + "/"+taskNumber +"/"+ groupNames +"/"+ teachers + "/" + subject, JSON.stringify({
-    }), function() {
-         refreshTimeTable();
-    }).fail(function(xhr, ajaxOptions, thrownError) {
-        showError("Adding lesson failed.", xhr);
-    });
-    $('#lessonDialog').modal('toggle');
-}
-
-
-function deleteLesson(lessonId) {
-    $.delete("/lessons/" + lessonId, function() {
-    //Remove all cards
-        $("[id*= le-" + lessonId + "]").remove();
-    }).fail(function(xhr, ajaxOptions, thrownError) {
-        showError("Deleting lesson (" + lesson.name + ") failed.", xhr);
     });
 }
 
@@ -692,31 +666,7 @@ function fetchRelatedLessonBlocksByTask(taskId){
     });
 }
 
-/*function fetchRelatedLessonBlocks(lesson){
-    const lessonIdForLessonBlockDisplay = $("#lessonIdForLessonBlock");
-    lessonIdForLessonBlockDisplay.children().remove();
-    const lesBlockOverview = $("#lesBlockOption");
-    lesBlockOverview.children().remove();
-    lesBlockOverview
-              .append($(`<option value= "NewLessonBlock">`).text("New lessonblock")
-              .append($("<option/>")));
-    $.get("/lessonBlocks/"+ lesson.lessonId, function(lessonBlockList) {
-            lessonIdForLessonBlockDisplay
-                                   .append($(`<option value= ${lesson.lessonId}>`).text(lesson.subject)
-                                   .append($("<option/>")));
-            var mul = 0;
-            if (lessonBlockList.length != 0) {
-                $.each(lessonBlockList, (index, lesBlock)=>{
-                    mul++;
-                    lesBlockOverview
-                        .append($(`<option value= ${lesBlock.lessonBlockId}>`).text("Block" + mul.toString())
-                        .append($("<option/>")));
-                });
-            }
-    }).fail(function(xhr, ajaxOptions, thrownError) {
-             showError("Extracting lessonBlocks for (" + lesson.subject + ") failed.", xhr);
-    });
-}*/
+//******************************************CHANGE -COUPLING***********************************************//
 
 function coupleToLessonBlock() {
     var size= $("#sizeForNewLessonBlock").val();
@@ -787,48 +737,9 @@ function uncoupleFromLessonBlock() {
         showError("Verwijderen van lesblok is mislukt.", xhr);
     });
     }
-    }
+}
 
-
-/*function coupleToLessonBlock() {
-    var lessonBlock = $("#lesBlockOption").val();
-    var lesId= parseInt($("#lessonIdForLessonBlock").val(),10);
-    if (lessonBlock == "NewLessonBlock"){
-        $.post("/lessonBlocks/addNewBlock/"+ lesId, JSON.stringify({
-        "lessonId": lesId
-        }),
-        function() {
-            refreshTimeTable();
-        }).fail(function(xhr, ajaxOptions, thrownError) {
-            showError("Adding new lessonblock failed.", xhr);
-        });
-    } else {
-        lessonBlock = parseInt($("#lesBlockOption").val(),10);
-        $.post("/lessonBlocks/addLesson/"+ lesId +"/toLessonBlock/"+ lessonBlock , JSON.stringify({
-        "lessonId": lesId,
-        "lessonBlock": lessonBlock
-        }),
-        function() {
-            refreshTimeTable();
-        }).fail(function(xhr, ajaxOptions, thrownError) {
-            showError("Adding new lessonblock failed.", xhr);
-        });
-    }
-    $('#lessonBlockDialog').modal('toggle');
-}*/
-
-/*function uncoupleFromLessonBlock(lesson) {
-    var lesId = lesson.lessonId;
-     $.post("/lessonBlocks/removeLesson/"+ lesId, JSON.stringify({
-     "lessonId": lesId
-     }),
-      function() {
-         refreshTimeTable();
-     }).fail(function(xhr, ajaxOptions, thrownError) {
-         showError("Adding new lessonblock failed.", xhr);
-      });
-
-}*/
+//******************************************CHANGE - PIN***********************************************//
 
 function changePinLesson(lessonId) {
     $.post("/lessons/changePin/" + lessonId, JSON.stringify({
@@ -862,9 +773,8 @@ function changePinLesson(lessonId) {
         showError("Locking lesson (" + lesson.subject + ") failed.", xhr);
     });
 }
-function openFullScreen(id) {
-    $("#refreshButton").requestFullscreen();
-}
+
+//******************************************CHANGE - LAST RESORT***********************************************//
 
 function changeLastResort(timeslot) {
     $.post("/timeslots/changeLastResort/" + timeslot.timeslotId, JSON.stringify({
@@ -876,6 +786,44 @@ function changeLastResort(timeslot) {
     });
 }
 
+//******************************************ADD DATA - LESSON***********************************************//
+function addLesson() {
+   var teachersV = $("#lesson_teachers").val();
+    var teachers =""
+        $.each(teachersV, (index, teacher)=>{
+            teachers= teachers + teacher + "-"
+        });
+
+
+    var groups = $("#lesson_studentGroups").val();
+    var groupNames=""
+            $.each(groups, (index, group)=>{
+                groupNames = groupNames + group + "-"
+            });
+    var subject = $("#lesson_subject").val().trim();
+    var taskNumber = parseInt($("#lesson_taskNumber").val(),10);
+    var multiplicity = parseInt($("#lesson_multiplicity").val(),10);
+    $.post("/lessonTasks/add/" + multiplicity  + "/"+taskNumber +"/"+ groupNames +"/"+ teachers + "/" + subject, JSON.stringify({
+    }), function() {
+         refreshTimeTable();
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+        showError("Adding lesson failed.", xhr);
+    });
+    $('#lessonDialog').modal('toggle');
+}
+
+//******************************************REMOVE DATA - LESSON***********************************************//
+
+function deleteLesson(lessonId) {
+    $.delete("/lessons/" + lessonId, function() {
+    //Remove all cards
+        $("[id*= le-" + lessonId + "]").remove();
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+        showError("Deleting lesson (" + lesson.name + ") failed.", xhr);
+    });
+}
+
+//******************************************ADD DATA -TIMESLOT***********************************************//
 function addTimeslot() {
     $.post("/timeslots", JSON.stringify({
         "dayOfWeek": $("#timeslot_dayOfWeek").val().trim().toUpperCase(),
@@ -892,6 +840,7 @@ function addTimeslot() {
     $('#timeslotDialog').modal('toggle');
 }
 
+//******************************************ADD DATA - STUDENTGROUP***********************************************//
 function addStudentGroup() {
     /*const putInfo = $("#info_view");*/
     var name = $("#newStudentGroup").val().trim();
@@ -906,6 +855,7 @@ function addStudentGroup() {
     $('#studentGroupDialog').modal('toggle');
 }
 
+//******************************************REMOVE DATA -TIMESLOT***********************************************//
 function deleteTimeslot(timeslot) {
     $.post("/lessons/resetTimeslots/" + timeslot.timeslotId, JSON.stringify({}), function(){
         $.delete("/preferences/onlyByTimeslot/" + timeslot.timeslotId, function(){
@@ -915,10 +865,9 @@ function deleteTimeslot(timeslot) {
                         showError("Deleting preferences with timeslot (" + timeslot.timeslotId + ") failed.", xhr);
         });
     });
-
-
 }
 
+//******************************************ADD DATA -ROOM***********************************************//
 function addRoom() {
     var name = $("#room_name").val().trim();
     $.post("/rooms", JSON.stringify({
@@ -931,6 +880,7 @@ function addRoom() {
     $("#roomDialog").modal('toggle');
 }
 
+//******************************************REMOVE DATA -ROOM***********************************************//
 function deleteRoom(room) {
     $.delete("/rooms/" + room.roomId, function() {
         refreshTimeTable();
@@ -939,7 +889,7 @@ function deleteRoom(room) {
     });
 }
 
-
+//**********************************FETCH SUMMARY - CONSTRAINT VIOLATIONS*****************************************//
 function extractConstraintsViolation() {
         $.get("/timeTable/summary/", function(constraintsValues) {
             const tableBody = $("#info_view").find("tbody");
@@ -959,15 +909,135 @@ function extractConstraintsViolation() {
         });
 }
 
+//*************************** LOAD FILES (TIMETABLES) **********************************************************//
 
-/*
-function deletePreference(preference) {
-    $.delete("/preferences/" + preference.id, function() {
-        refreshTimeTable();
+function loadTimeTables() {
+    const loadedTimeTables = $("#fileVersion");
+    loadedTimeTables.children().remove();
+    $.get("/fm/load", function(fileNames){
+                //TO DO: TRANSFER FILE FROM SERVER TO CLIENT: HOW????
+                var FV = localStorage.getItem('fv') ;
+
+                loadedTimeTables.attr('onchange', `loadTable(this.value)`);
+                for (let index = 0; index < fileNames.length; index++){
+                    loadedTimeTables.append($(`<option value = ${fileNames[index]}> ${fileNames[index]} </option>`));
+                }
+
+                if (FV == 'undefined' ) {
+                    FV = fileNames[0]; //select the first
+                    localStorage.setItem('fv', FV)
+                }
+                loadedTimeTables.val(FV);
+
+        }).fail(function(xhr, ajaxOptions, thrownError) {
+            showError("Loading files failed.", xhr);
+        });
+}
+
+function loadTable(tableName){
+    $.post("/timeTable/changeTableTo/" + tableName, function(){
+            localStorage.setItem('fv', tableName)
+            refreshTimeTable()
+        }).fail(function(xhr, ajaxOptions, thrownError) {
+            showError("Changing table failed.", xhr);
+        });
+}
+
+//*************************** DOWNLOAD OPTION ****************************************************//
+
+function downloadFile() {
+    var fileName = $("#downloadFileName").val();
+    var uri = "/fm/download/" + fileName + "/xml";
+    $.get(uri, function(){
+                //TODO
     }).fail(function(xhr, ajaxOptions, thrownError) {
-        showError("Deleting preferences for (" + preference.teacher + ") failed.", xhr);
+        showError("Saving file failed.", xhr);
     });
-}*/
+
+}
+
+//******************************SAVE OPTION (ON SERVER)*********************************************//
+function saveFile(){
+    var fileName = $("#fileVersion").val();
+    var uri = "/fm/save/" + fileName + "/xml";
+    $.post(uri, JSON.stringify({}), function(){
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+        showError("Saving file failed.", xhr);
+    });
+}
+
+//******************************DELETE OPTION (ON SERVER)*********************************************//
+function deleteFile(){
+    var fileName = $("#fileVersion").val();
+    const numberOfFiles = $("#fileVersion option").length
+    $.post("/fm/delete/" + fileName + "/xml", JSON.stringify({}), function(){
+        $.get("/fm/loadFile", function(fileName){
+            const length = fileName.length;
+            if (length > 0) {
+                localStorage.setItem('fv', fileName[0]);
+                loadTable(fileName[0]);
+                loadTimeTables();
+            } else {
+                localStorage.setItem('fv', 'undefined');
+                resetTableDataset();
+            }
+        })
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+        showError("Deleting file failed.", xhr);
+    });
+}
+
+//Clean table
+function resetTableDataset(){
+    $.post("/timeTable/resetTableDatabase", function(){
+            refreshTimeTable();
+            loadTimeTables();
+        }).fail(function(xhr, ajaxOptions, thrownError) {
+            showError("Resetting table failed.", xhr);
+        });
+
+}
+
+//******************************COPY FILE OPTION (ON SERVER)*********************************************//
+
+function copyFile(){
+    $.get("/fm/load", function(files){
+        const fileName = $("#fileVersion").val();
+        const copyFile = renameCopy(fileName, files); //check for no overlap
+        $.post("/fm/copy/" + copyFile + "/xml", function(){
+            localStorage.setItem('fv', copyFile);
+            loadTimeTables()
+        })
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+        showError("Copying file failed.", xhr);
+    });
+}
+
+function renameCopy(fileName, files){
+    var copyFile = fileName + "_v2";
+    if (fileName.length > 3 && fileName.lastIndexOf("_v") > -1){
+        const index = fileName.lastIndexOf("_v") + 2
+        const end = fileName.substring(index);
+        if (end.length > 0 && end.match(/[0-9]+/)){
+            copyFile = fileName.substring(0, index) + (parseInt(end) + 1);
+        }
+    }
+    if (files.includes(copyFile)){
+        copyFile = renameCopy(copyFile, files);
+    }
+    return copyFile
+}
+
+//******DISPLAY INFO *****//
+
+function showVariableInShell(message){
+    $.post("/fm/send/" + message, function(){
+    }).fail(function(xhr, ajaxOptions, thrownError) {
+        showError("Sending message failed.", xhr);
+    });
+}
+
+//***********************************ERROR HANDLING***********************************************//
 
 function showError(title, xhr) {
     const serverErrorMessage = !xhr.responseJSON ? `${xhr.status}: ${xhr.statusText}` : xhr.responseJSON.message;
@@ -989,6 +1059,12 @@ function showError(title, xhr) {
     notification.toast({ delay: 30000 });
     notification.toast('show');
 }
+
+/*
+----------------------------------------------------------------------------------------------------------------
+*******************************************DOCUMENT READY******************************************************
+---------------------------------------------------------------------------------------------------------------
+*/
 
 $(document).ready(function() {
     $.ajaxSetup({
@@ -1029,8 +1105,13 @@ $(document).ready(function() {
     $("#refreshButton").click(function() {
         refreshTimeTable();
     });
+
     $("#solveButton").click(function() {
         solve();
+    });
+
+    $("#downloadFileButton").click(function() {
+        downloadFile();
     });
 
     $("#infoScoreButton").click(function() {
@@ -1055,7 +1136,20 @@ $(document).ready(function() {
 
    $("#addPreferenceSubmitButton").click(function() {
         addPreference();
-    });
+   });
+
+
+   //FILE BUTTONS - SAVE/COPY/DELETE
+   $("#saveFile").click(function() {
+        saveFile();
+   });
+   $("#copyFile").click(function() {
+        copyFile();
+   });
+   $("#deleteFile").click(function() {
+        deleteFile();
+   });
+
 
 
    $("#preferencePerTeacherNav").click(function(){
@@ -1088,42 +1182,16 @@ $(document).ready(function() {
         }
     }, false);
 
-   refreshTimeTable();
-
-
-/*    .click(function(){
-        alert("Hallo")
-      // if already full screen; exit
-      // else go fullscreen
-      if (
-        document.fullscreenElement ||
-        document.webkitFullscreenElement ||
-        document.mozFullScreenElement ||
-        document.msFullscreenElement
-      ) {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        } else if (document.mozCancelFullScreen) {
-          document.mozCancelFullScreen();
-        } else if (document.webkitExitFullscreen) {
-          document.webkitExitFullscreen();
-        } else if (document.msExitFullscreen) {
-          document.msExitFullscreen();
-        }
-      } else {
-        element = $('#byTeacher').get(0);
-        if (element.requestFullscreen) {
-          element.requestFullscreen();
-        } else if (element.mozRequestFullScreen) {
-          element.mozRequestFullScreen();
-        } else if (element.webkitRequestFullscreen) {
-          element.webkitRequestFullscreen(Element.ALLOW_KEYBOARD_INPUT);
-        } else if (element.msRequestFullscreen) {
-          element.msRequestFullscreen();
-        }
-      }
-    });*/
+    //LOADING timeTable versions saved at PATHNAME repository//
+    loadTimeTables();
+    refreshTimeTable();
 });
+
+/*
+------------------------------------------------------------------------
+***********************TABLE TO FULL SCREEN*****************************
+-------------------------------------------------------------------------
+*/
 
 function inFullScreen(){
     return ( document.fullscreenElement ||
@@ -1201,6 +1269,7 @@ function afterFullScreenEvent(){
     $(".table-responsive").css("height", "500px");
 
 }
+
 
 // ****************************************************************************
 // TangoColorFactory

@@ -96,7 +96,7 @@ public class ExtractUntisText {
                 } else {
                     totalString = "0";
                 }
-                int total= Integer.parseInt(totalString);
+                int total = Integer.parseInt(totalString);
 
                 Teacher teacher = new Teacher(teacherAcronym, teacherName);
 /*                teacher.setTaskHours(taskHours);*/

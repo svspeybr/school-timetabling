@@ -1,29 +1,27 @@
 package org.acme.timetabling.domain;
 
+import org.acme.timetabling.domain.solver.LessonAssignmentDifficultyComparator;
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.entity.PlanningPin;
 import org.optaplanner.core.api.domain.valuerange.CountableValueRange;
 import org.optaplanner.core.api.domain.valuerange.ValueRangeFactory;
-import org.optaplanner.core.api.domain.valuerange.ValueRangeProvider;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
-import java.util.List;
 import java.util.Set;
 
-@PlanningEntity
+@PlanningEntity(difficultyComparatorClass = LessonAssignmentDifficultyComparator.class)
 public class LessonAssignment {
 
 
     Long lessonId;
     LessonTask lessonTask;
+    Set<StudentGroup> studentGroups;
     String subject;
 
     @PlanningVariable(valueRangeProviderRefs = "roomRange")
     Room room;
     @PlanningVariable(valueRangeProviderRefs = "timeslotRange")
     Timeslot timeslot;
-    @PlanningVariable(valueRangeProviderRefs = "studentGroupPartitionNumberRange")
-    Integer partitionNumber = 0;
 
     private Boolean pinned= false;
 
@@ -49,20 +47,27 @@ public class LessonAssignment {
 
     public LessonAssignment(Long lessonId,
                             LessonTask lessonTask,
+                            Set<StudentGroup> studentGroups,
                             String subject,
                             Room room,
                             Timeslot timeslot,
                             Boolean pinned) {
         this.lessonId = lessonId;
         this.lessonTask = lessonTask;
+        this.studentGroups = studentGroups;
         this.subject = subject;
         this.room = room;
         this.timeslot = timeslot;
         this.pinned = pinned;
     }
 
-    @ValueRangeProvider(id = "studentGroupPartitionNumberRange")
-    public CountableValueRange<Integer> getStudentGroupPartitionNumberRange() {
+/*    @ValueRangeProvider(id = "partitionNumberRange")
+    public CountableValueRange<Integer> getPNRange() {
+        return ValueRangeFactory.createIntValueRange(this.partitionNumber, this.partitionNumber + 1, 1);
+    }*/
+
+
+    public CountableValueRange<Integer> getPartitionNumberRange() {
         int to = 1;
         CourseLevel courseLevel = this.lessonTask.getCourseLevel();
         if (courseLevel != null) {
@@ -81,16 +86,16 @@ public class LessonAssignment {
         return lessonTask;
     }
 
-    public Integer getPartitionNumber() {
+/*    public Integer getPartitionNumber() {
         return partitionNumber;
     }
 
     public void setPartitionNumber(Integer partitionNumber) {
         this.partitionNumber = partitionNumber;
-    }
+    }*/
 
     public Set<StudentGroup> getStudentGroups(){
-        return lessonTask.getStudentGroupsFromPartition(partitionNumber);
+        return studentGroups;
     }
 
     public Long getLessonId(){return lessonId;}

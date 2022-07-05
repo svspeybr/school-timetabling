@@ -13,7 +13,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Entity
-public final class DefaultSettings extends PanacheEntityBase {
+public class DefaultSettings extends PanacheEntityBase {
 
     @Id
     private Long defaultSetId;
@@ -30,13 +30,14 @@ public final class DefaultSettings extends PanacheEntityBase {
 
     private Integer numberOfGrades = 3;
 
+    //SAME AS WEEKLENGTH >--> REDUNDANT???
     private Integer NumberOfTeachingDays = 5;
     //Needed for constraintfactory -> counting lesoverlaps per lessontask --> Placed here or
     private Integer NumberOfTimeslots;
 
     @ElementCollection(fetch = FetchType.EAGER)
     @Fetch(value = FetchMode.SUBSELECT)
-    private List<Integer> timeslotsADay = new ArrayList<>(Collections.nCopies(7,0));
+    private final List<Integer> timeslotsADay = new ArrayList<>(Collections.nCopies(7,0));
 
 
     public DefaultSettings(){
@@ -55,8 +56,8 @@ public final class DefaultSettings extends PanacheEntityBase {
         return weekLength;
     }
 
-    public void addSlotCount(int dayIndex, int value){
-        int count = timeslotsADay.get(dayIndex - 1) + value;
+    public void addSlotCount(int dayIndex, int countMultiple){
+        int count = timeslotsADay.get(dayIndex - 1) + countMultiple;
         if (count < 0) {
             throw new IllegalArgumentException("Something went wrong at counting slots on dayIndex" + dayIndex);
         }
@@ -79,6 +80,7 @@ public final class DefaultSettings extends PanacheEntityBase {
         return numberOfGrades;
     }
 
+    //SPC DEPENDED <--> generalising?
     public Fraction determineTaskPercentage(List<Integer> hoursPerGrade){
         Fraction percentage = new Fraction(0);
         for (int grade = 0; grade < numberOfGrades; grade ++){
@@ -98,6 +100,7 @@ public final class DefaultSettings extends PanacheEntityBase {
         return firstOrLastHours;
     }
 
+    //SPC DEPENDED <--> generalising?
     private int gradeWeight(int grade){
         if (grade == 1){
             return 22;
@@ -111,6 +114,7 @@ public final class DefaultSettings extends PanacheEntityBase {
         throw new IllegalArgumentException();
     }
 
+    //SPC DEPENDED <--> generalising?
     public int determineFullTime(List<Integer> hoursPerGrade){
         int max = 0;
         int maxAtGrade = 1;
@@ -124,10 +128,12 @@ public final class DefaultSettings extends PanacheEntityBase {
         return gradeWeight(maxAtGrade);
     }
 
+    //SPC DEPENDED <--> TO DO: first hour input
     public Boolean isFirstHour( Timeslot timeslot) {
         return timeslot.getStartTime().compareTo(LocalTime.of(9, 20)) < 0;
     }
 
+    //SPC DEPENDED <--> TO DO: last hour input
     public Boolean isLastHour( Timeslot timeslot) {
 /*        if (timeslot.getDayOfWeek().equals(DayOfWeek.WEDNESDAY)){
             return timeslot.getStartTime().compareTo(LocalTime.of(11, 25)) >= 0;
@@ -135,6 +141,7 @@ public final class DefaultSettings extends PanacheEntityBase {
         return timeslot.getStartTime().compareTo(LocalTime.of(14, 55)) >= 0;
     }
 
+    //SPC DEPENDED <--> TO DO: first hour input
     public Boolean noFullHourBeforeAsLastHour(Timeslot timeslot) {
 /*        if (timeslot.getDayOfWeek().equals(DayOfWeek.WEDNESDAY)){
             return timeslot.getStartTime().compareTo(LocalTime.of(11, 25)) >= 0;

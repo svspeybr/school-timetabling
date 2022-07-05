@@ -40,6 +40,7 @@ public class XmlDomParser {
         List<Lesson> lessonList =new ArrayList<>();
         Function<String, List> giveList = null;
 
+
         try {
 
             // optional, but recommended
@@ -131,39 +132,6 @@ public class XmlDomParser {
                     }
                 }
             }
-//TESTING ORDERING OF TIMESLOTS DURING FETCHING
-/*            Timeslot toy1 = new Timeslot(DayOfWeek.WEDNESDAY,seventh.get(0), seventh.get(1));
-            Timeslot toy2 = new Timeslot(DayOfWeek.SATURDAY,seventh.get(0), seventh.get(1));
-            Timeslot toy3 = new Timeslot(DayOfWeek.WEDNESDAY,seventh.get(0), eighth.get(1));
-            timeslotList.add(toy1);
-            timeslotList.add(toy2);
-            timeslotList.add(toy3);*/
-
-            //EXTRACT TEACHERNAMES FROM DOC
-/*            NodeList teachersList = doc.getElementsByTagName("Teacher");
-            List<String> teacherNameList = new ArrayList<>();
-
-            for (int index =0; index < teachersList.getLength(); index ++) {
-                Node node = teachersList.item(index);
-                if (node.getNodeType() == Node.ELEMENT_NODE) {
-
-                    Element element = (Element) node;
-                    Node child = element.getElementsByTagName("Name").item(0);
-                    if (child !=  null) {
-                        String acronym = child.getTextContent();
-                        teacherNameList.add(acronym);
-                    }
-
-
-                }
-            }
-
-            //CREATE TEACHERLIST
-
-
-            for (String name: teacherNameList) {
-                teacherList.add(new Teacher(name));
-            }*/
 
             //Extract teachers from DATA/EXTERN/DOCENTEN...TEXT
 
@@ -218,7 +186,6 @@ public class XmlDomParser {
 
             LessonTask lessonTask;
             Lesson lesson;
-/*            LessonBlock lessonBlock;*/
             List<String> versionB =new ArrayList<>();
             List<String> taskNumbList = new ArrayList<>();
             for (int index =0; index < LessonTaskList.getLength(); index ++) {
@@ -339,4 +306,7 @@ public class XmlDomParser {
         }
         return giveList;
     }
+
 }
+
+

@@ -15,15 +15,13 @@ import java.util.Map;
 @Entity
 public class ThemeCollection extends PanacheEntityBase {
 
+    //ThemeCollection bundles lessons for which only a restricted number (= timeslots[timeslot]) can have the same timeslot.
+    //E.G. Only max. 1(/2) LO lesson(s)can be used for using the swimming.
+    // The map 'timeslots' saves the maximal allowed combinations.
+
     @Id
     @Column(name = "THEME_ID")
     private String theme;
-
-    @OneToMany(targetEntity = Lesson.class)
-    @JoinTable(name="THEME_LESSONS",
-            joinColumns = @JoinColumn( name="THEME_ID"),
-            inverseJoinColumns = @JoinColumn( name="TL_LESSON_ID"))
-    private List<Lesson> lessons= new ArrayList<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name="THEME_LESSONS",
@@ -56,17 +54,17 @@ public class ThemeCollection extends PanacheEntityBase {
     public Integer getMultiplicity(Timeslot timeslot){
         Integer val = this.timeslots.get(timeslot);
         if (val != null) {
-            System.out.println(timeslot);
-            System.out.println(val);
             return val;
         }
         return 0;
     }
 
-    public int copy(int number){
-        System.out.println("***");
-        System.out.println(number);
-        return number;
+    public Map<Timeslot, Integer> getMultiplicityTimeslots(){
+        return this.timeslots;
+    }
+
+    public String getTheme() {
+        return theme;
     }
 
     public List<Long> getLessonIds() {

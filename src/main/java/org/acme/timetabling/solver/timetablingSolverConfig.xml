@@ -12,12 +12,32 @@
     </scoreDirectorFactory>
 
     <termination>
-        <secondsSpentLimit>180</secondsSpentLimit>
+        <secondsSpentLimit>300</secondsSpentLimit>
     </termination>
 
     <constructionHeuristic>
-        <constructionHeuristicType>FIRST_FIT</constructionHeuristicType>
+        <queuedEntityPlacer>
+            <entitySelector id = "placerEntitySelector">
+                <selectionOrder> SORTED</selectionOrder>
+                <sorterManner> DECREASING_DIFFICULTY</sorterManner>
+            </entitySelector>
+            <cartesianProductMoveSelector>
+                <changeMoveSelector>
+                    <entitySelector mimicSelectorRef = "placerEntitySelector"/>
+                    <valueSelector>
+                        <variableName>timeslot</variableName>
+                    </valueSelector>
+                </changeMoveSelector>
+                <changeMoveSelector>
+                    <entitySelector mimicSelectorRef = "placerEntitySelector"/>
+                    <valueSelector>
+                        <variableName> room </variableName>
+                    </valueSelector>
+                </changeMoveSelector>
+            </cartesianProductMoveSelector>
+        </queuedEntityPlacer>
     </constructionHeuristic>
+
     <localSearch>
         <unionMoveSelector>
             <changeMoveSelector>
@@ -37,9 +57,86 @@
                 <variableNameInclude>timeslot</variableNameInclude>
                 <variableNameInclude>room</variableNameInclude>
             </swapMoveSelector>
+        </unionMoveSelector>
+        <acceptor>
+            <simulatedAnnealingStartingTemperature>0hard/140soft</simulatedAnnealingStartingTemperature>
+        </acceptor>
+        <forager>
+            <acceptedCountLimit>4</acceptedCountLimit>
+        </forager>
+    </localSearch>
+
+
+<!--    <localSearch>
+        <unionMoveSelector>
             <moveListFactory>
+                <entitySelector>
+                    <filterClass>org.acme.timetabling.domain.solver.LessonAssignmentHasCourseLevelFilter</filterClass>
+                </entitySelector>
+                <fixedProbabilityWeight>3.0</fixedProbabilityWeight>
                 <moveListFactoryClass>org.acme.timetabling.domain.solver.LessonAssignmentPillarChangeMoveFactory</moveListFactoryClass>
             </moveListFactory>
+            <changeMoveSelector>
+                <fixedProbabilityWeight>1.0</fixedProbabilityWeight>
+            </changeMoveSelector>
+            <swapMoveSelector>
+                <fixedProbabilityWeight>2.0</fixedProbabilityWeight>
+            </swapMoveSelector>
+        </unionMoveSelector>
+        <forager>
+            <acceptedCountLimit>4</acceptedCountLimit>
+        </forager>
+    </localSearch>-->
+
+<!--    <constructionHeuristic>
+        <constructionHeuristicType>
+            ALLOCATE_ENTITY_FROM_QUEUE
+        </constructionHeuristicType>
+        <queuedEntityPlacer>
+            <entitySelector id = "placerEntitySelector">
+                <selectionOrder> SORTED</selectionOrder>
+                <sorterManner> DECREASING_DIFFICULTY</sorterManner>
+            </entitySelector>
+            <cartesianProductMoveSelector>
+                <changeMoveSelector>
+                    <entitySelector mimicSelectorRef = "placerEntitySelector"/>
+                    <valueSelector>
+                        <variableName>timeslot</variableName>
+                    </valueSelector>
+                </changeMoveSelector>
+                <changeMoveSelector>
+                    <entitySelector mimicSelectorRef = "placerEntitySelector"/>
+                    <valueSelector>
+                        <variableName> room </variableName>
+                    </valueSelector>
+                </changeMoveSelector>
+            </cartesianProductMoveSelector>
+            <changeMoveSelector>
+                <entitySelector mimicSelectorRef = "placerEntitySelector"/>
+                <moveListFactoryClass>org.acme.timetabling.domain.solver.LessonAssignmentPillarChangeMoveFactory</moveListFactoryClass>
+            </changeMoveSelector>
+        </queuedEntityPlacer>
+    </constructionHeuristic>-->
+
+<!--    <localSearch>
+        <unionMoveSelector>
+            <changeMoveSelector>
+                <entitySelector>
+                    <entityClass>org.acme.timetabling.domain.LessonAssignment</entityClass>
+                </entitySelector>
+                <valueSelector>
+                    <variableName>timeslot</variableName>
+                    <variableName>room</variableName>
+                </valueSelector>
+            </changeMoveSelector>
+            <swapMoveSelector>
+                <entitySelector>
+                    <entityClass>org.acme.timetabling.domain.LessonAssignment</entityClass>
+                </entitySelector>
+                <filterClass>org.acme.timetabling.domain.solver.DifferentLessonSwapMoveFilter</filterClass>
+                <variableNameInclude>timeslot</variableNameInclude>
+                <variableNameInclude>room</variableNameInclude>
+            </swapMoveSelector>
         </unionMoveSelector>
         <acceptor>
             <simulatedAnnealingStartingTemperature>0hard/400soft</simulatedAnnealingStartingTemperature>
@@ -47,7 +144,47 @@
         <forager>
             <acceptedCountLimit>4</acceptedCountLimit>
         </forager>
-    </localSearch>
+    </localSearch>-->
+
+
+
+<!--    <localSearch>
+        <unionMoveSelector>
+            <changeMoveSelector>
+                <entitySelector>
+                    <entityClass>org.acme.timetabling.domain.LessonAssignment</entityClass>
+                </entitySelector>
+                <valueSelector>
+                    <variableName>timeslot</variableName>
+                </valueSelector>
+            </changeMoveSelector>
+
+            <changeMoveSelector>
+                <entitySelector>
+                    <entityClass>org.acme.timetabling.domain.LessonAssignment</entityClass>
+                </entitySelector>
+                <valueSelector>
+                    <variableName>room</variableName>
+                </valueSelector>
+            </changeMoveSelector>
+
+            <swapMoveSelector>
+                <entitySelector>
+                    <entityClass>org.acme.timetabling.domain.LessonAssignment</entityClass>
+                </entitySelector>
+                <filterClass>org.acme.timetabling.domain.solver.DifferentLessonSwapMoveFilter</filterClass>
+                <variableNameInclude>timeslot</variableNameInclude>
+                <variableNameInclude>room</variableNameInclude>
+            </swapMoveSelector>
+
+        </unionMoveSelector>
+        <acceptor>
+            <simulatedAnnealingStartingTemperature>0hard/400soft</simulatedAnnealingStartingTemperature>
+        </acceptor>
+        <forager>
+            <acceptedCountLimit>4</acceptedCountLimit>
+        </forager>
+    </localSearch>-->
     <!--   <constructionHeuristic>
         <constructionHeuristicType>FIRST_FIT_DECREASING</constructionHeuristicType>
     </constructionHeuristic>

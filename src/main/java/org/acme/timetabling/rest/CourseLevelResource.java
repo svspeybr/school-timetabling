@@ -1,7 +1,6 @@
 package org.acme.timetabling.rest;
 
 import org.acme.timetabling.domain.CourseLevel;
-import org.acme.timetabling.domain.Lesson;
 
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;

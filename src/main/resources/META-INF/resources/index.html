@@ -7,7 +7,7 @@
   ~
   ~      http://www.apache.org/licenses/LICENSE-2.0
   ~
-  ~ Unless required by applicable law or agreed to in writing, software
+  ~ Unless required by applicable law or agreed to in writing, softwaretab
   ~ distributed under the License is distributed on an "AS IS" BASIS,
   ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
   ~ See the License for the specific language governing permissions and
@@ -33,34 +33,45 @@
 </head>
 
 <body>
-<!--    <h1>Welcome to jQuery UI!</h1>
     <div>
-        <div class="card" style="background-color: aqua">
-            <div class="card-body p-2">
-                <h5 class="card-title mb-1"> CARD </h5>
-                <p class="card-text ml-2 mb-1"> HELLO </p>
-            </div>
-        </div>
-        <div class="card" style="background-color: aqua">
-            <div class="card-body p-2">
-                <h5 class="card-title mb-1"> CARD2 </h5>
-                <p class="card-text ml-2 mb-1"> HELLO </p>
-            </div>
-        </div>
-    </div>-->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light" style = "width: 100%">
-        <a class="navbar-brand" href="/">
-            <img src="optaPlannerLogo200px.png" alt="OptaPlanner logo">
-        </a>
-    </nav>
+        <nav class="navbar navbar-expand-lg navbar-light bg-light" style = "width: 100%;">
+            <a class="navbar-brand" href="/" style = "margin-left: auto; margin-right: auto;">
+                <img src="/overviewImages/logoUurrooster.png" alt="OptaPlanner logo" style="display: block; width: 15vw; height: 15vh;" >
+            </a>
+        </nav>
 
-    <div class="container" style = "width: 100%">
+        <nav class="navbar navbar-light navbar-expand-lg" style="background-color: #d6edd1; width: 100%;">
+
+            <!--<ul class="navbar-nav" style="margin-left: auto; margin-right: auto; height: 4vh;">
+                <li class="nav-item dropdown" > -->
+
+                <a class="nav-link btn dropdown-toggle" id = "startNav" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style ="margin-left: auto; background-color:transparent; cursor: pointer; display: inline-block">
+                    <b>Start</b>
+                </a>
+                <div class="dropdown-menu" aria-labelledby="startNav">
+                    <a class="dropdown-item" href="#">Nieuw rooster</a>
+                    <a class="dropdown-item" href="#" > <i class="fa fa-save"></i> Opslaan </a>
+                    <a class="dropdown-item" href="#">  <i class="fa fa-download"></i> Download </a>
+                    <a class="dropdown-item" href="#">Import</a>
+                    <a class="dropdown-item" href="#">Export</a>
+                </div>
+
+                <a class="nav-link" id = "preferencePerTeacherNav" style ="cursor: pointer; display: inline-block"> <b>Voorkeur </b></a>
+                <a class="nav-link" href="/overview/teacher.html" style ="cursor: pointer; display: inline-block; color: inherit"><b>Leraren</b></a>
+                <a class="nav-link" id="themeConfigurationNav" style ="cursor: pointer; display: inline-block; margin-right: auto;"><b>Thema configuratie</b></a>
+        </nav>
+    </div>
+
+    <!-- Create spacing-->
+    <div style = "height: 1vh">
+        <p></p>
+    </div>
+
+    <div style = "width: 90vw; margin-left: auto; margin-right: auto;">
 
         <div class="sticky-top d-flex justify-content-center align-items-center" aria-live="polite" aria-atomic="true">
             <div id="notificationPanel" style="position: absolute; top: .5rem;"></div>
         </div>
-        <h1>Lessonrooster SPC - Optaplanner  </h1>
-        <p>Genereert -hopelijk- het optimale uurrooster voor de collega's.</p>
 
         <div style="margin-bottom: .5rem">
 
@@ -121,42 +132,53 @@
         </div>
 
         <!--BUTTONS FOR ADDING -->
-        <div>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lessonDialog">
-                <span class="fas fa-plus"></span> Nieuwe les
-            </button>
-            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#timeslotDialog">
-                <span class="fas fa-plus"></span> Nieuw tijdslot
-            </button>
-            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#roomDialog">
-                <span class="fas fa-plus"></span> Nieuw lokaal
-            </button>
-            <button type="button" class="btn btn-secondary" id="themeConfigurationNav">
-                <span class="fas fa-plus"></span> Thema configuratie
-            </button>
+        <div style="margin-bottom: 100px; width: 100%">
+            <ul>
+                <li style="display: inline-block; float: left">
+                    <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#lessonDialog">
+                        <span class="fas fa-plus"></span> Nieuwe les
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#timeslotDialog">
+                        <span class="fas fa-plus"></span> Nieuw tijdslot
+                    </button>
+                    <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#roomDialog">
+                        <span class="fas fa-plus"></span> Nieuw lokaal
+                    </button>
+                </li>
+                <li style="display: inline-block; float: right; height: 50px; padding: 1px;">
+                    <button type="button" class="btn btn-secondary" style ="height: 38px" id ="deleteFile"> <i class="fas fa-trash"></i></button>
+                </li>
+                <li style="display: inline-block; float: right; height: 50px; padding: 1px;">
+                    <button type="button" class="btn btn-secondary" style ="height: 38px" id ="copyFile"> <i class="fas fa-copy"></i></button>
+                </li>
+                <li style="display: inline-block; float: right; height: 50px; padding: 1px;">
+                    <button type="button" class="btn btn-primary" style ="height: 38px" id ="saveFile"> <i class="fas fa-save"></i></button>
+                </li>
+                <li style="display: inline-block; float: right; height: 50px; padding: 1px;" >
+                    <form style = "width: 300px;">
+                        <select class="form-control" id="fileVersion">
+
+                        </select>
+                    </form>
+                </li>
+            </ul>
         </div>
 
-        <div>
-            <h2 style="margin-top: 2rem">Overzicht</h2>
-            <!--OVERVIEW TEACHERS PREFERENCES-->
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <a class = "navbar-brand">
-                    <button type="button" id = "preferencePerTeacherNav" class="btn btn-outline-info">
-                          Voorkeur
-                    </button>
-                </a>
-                <a class = "navbar-brand" href = "/overview/teacher.html" >
-                    <button type="button" class="btn btn-outline-info">
-                        Leraren
-                    </button>
-                </a>
-            </nav>
-            <!--OVERVIEW TEACHERS PREFERENCES-->
-
-        </div>
         <!--OVERVIEW UNASSIGNED LESSONS-->
-        <h2 style="margin-top: 2rem">Niet geplaatste lessen</h2>
-        <div id="unassignedLessons" class="card-columns" style = "column-count: 5 "></div>
+        <!--<
+                <h2 style="display: block;">Niet geplaatste lessen</h2>
+                <div id="unassignedLessons" class="card-columns" style = "column-count: 7; overflow: hidden">>
+        -->
+        <div class="table-responsive">
+            <table class="table table-bordered table-striped" style ="width: 100%;">
+                <thead>
+                <h2 style="display: block;">Niet geplaatste lessen</h2>
+                </thead>
+                <tbody>
+                    <tr id="unassignedLessons"></tr>
+                </tbody>
+            </table>
+        </div>
         <!--START-->
 <!--        <h2 style="margin-top: 2rem">TEST</h2>
 
@@ -207,7 +229,9 @@
             </div>
         </div>-->
         <!--END-->
+
     </div>
+
 <!--LessonBlock -->
     <div class="modal fade" id="lessonBlockDialog" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="dialog">
@@ -273,7 +297,7 @@
         </div>
     </div>
 
-<!--ADD LESSON-->
+<!--ADD LESSON /MODAL/-->
     <div class="modal fade" id="lessonDialog" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="dialog">
             <div class="modal-content">
@@ -297,6 +321,7 @@
                         <input type="text" class="form-control" id="lesson_subject" required value="Music">
                     </div>
                     <div class = "form -group" id = "lesson_fields">
+
                         <div class="form-group" >
                             <label for="lesson_teachers">Taught by</label>
                             <select multiple class="form-control" id="lesson_teachers" required>
@@ -310,6 +335,7 @@
                                 <!--Added by app.js -->
                             </select>
                         </div>
+
                     </div>
                     <div class="form-group">
                         <div class="input-group input-group-sm mb-3" >
@@ -329,7 +355,7 @@
         </div>
     </div>
 
-    <!--ADD Timeslot-->
+    <!--ADD Timeslot /MODAL/-->
     <div class="modal fade" id="timeslotDialog" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="dialog">
             <div class="modal-content">
@@ -356,7 +382,7 @@
                     </div>
                     <div class="form-group">
                         <label for="timeslot_endTime">End time</label>
-                        <input type="time" class="form-control" id="timeslot_endTime" required value="09:30">
+                        <input type="time" class="form-control" id="timeslot_endTime" required value="09:30" />
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
@@ -367,7 +393,7 @@
         </div>
     </div>
 
-    <!--ADD ROOM-->
+    <!--ADD ROOM /MODAL/-->
     <div class="modal fade" id="roomDialog" tabindex="-1" role="dialog">
         <div class="modal-dialog" role="dialog">
             <div class="modal-content">
@@ -380,11 +406,38 @@
                 <div class="modal-body">
                     <div class="form-group">
                         <label for="room_name">Name</label>
-                        <input type="text" class="form-control" id="room_name" required value="Room D">
+                        <input type="text" class="form-control" id="room_name" required value="Room D"/>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-primary" id="addRoomSubmitButton">Submit new room</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TO DO (/non active) - DOWNLOAD FILE /MODAL -->
+    <div class="modal fade" id="downloadFileDialog" tabindex="-1" role="dialog">
+        <div class="modal-dialog" role="dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4>Download uurrooster als...</h4>
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span>&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="downloadFileName">Bestand</label>
+                        <input type="text" class="form-control" id="downloadFileName" required/>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Annuleer</button>
+                        <button type="button" class="btn btn-primary" id = "downloadFileButton"> Download </button>
+                    </div>
+                    <div id = "generateDownloadLink">
+                        <a  href="#">link</a>
                     </div>
                 </div>
             </div>
@@ -401,5 +454,19 @@
     <script src="/webjars/momentjs/min/moment.min.js"></script>
     <script src="/app.js"></script>
 </body>
+
+<footer>
+    <nav class="navbar navbar-light navbar-expand-lg" style="background-color: #d6edd1;" style="display: block;">
+        <div  class="collapse navbar-collapse" style = "height: 2.5vh;">
+            <ul class="navbar-nav mr-auto" style="margin-left: auto; margin-right: auto;">
+                <li class="nav-item">
+                    <a class="navbar-brand" href="/" style = "margin-left: auto; margin-right: auto;">
+                        <img src="optaPlannerLogo200px.png" alt="OptaPlanner logo" >
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+</footer>
 
 </html>

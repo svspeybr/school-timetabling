@@ -2,7 +2,7 @@ package org.acme.timetabling.rest;
 
 import org.acme.timetabling.domain.DefaultSettings;
 import org.acme.timetabling.domain.Teacher;
-import org.acme.timetabling.domain.Timeslot;
+
 
 import javax.transaction.Transactional;
 import javax.ws.rs.*;

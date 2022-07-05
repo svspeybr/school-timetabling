@@ -2,10 +2,14 @@ package org.acme.timetabling.domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
 
 import javax.persistence.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @XStreamAlias("Preference")
@@ -19,6 +23,8 @@ public class Preference extends PanacheEntityBase {
     private Teacher teacher;
     @ManyToOne
     private Timeslot timeslot;
+
+
 
     public Preference() {
     }
@@ -40,7 +46,6 @@ public class Preference extends PanacheEntityBase {
     public Timeslot getTimeslot() {
         return timeslot;
     }
-
 
     @Override
     public String toString() {

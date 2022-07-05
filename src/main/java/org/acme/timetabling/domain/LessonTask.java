@@ -14,14 +14,14 @@ import java.util.stream.Collectors;
 
 @Entity
 @XStreamAlias("LessonTask")
-public class LessonTask extends PanacheEntityBase {
+public class LessonTask extends PanacheEntityBase{
 
     /*FIELDS */
     @Id
     @Column(name = "TASKNUMBER")
     private Integer taskNumber;
 
-    @ManyToMany(targetEntity = StudentGroup.class, fetch = FetchType.EAGER)
+    @ManyToMany(targetEntity = StudentGroup.class, fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     private Set<StudentGroup> studentGroups = new HashSet<>();
 
     @ManyToMany(targetEntity = Teacher.class, fetch = FetchType.EAGER)
@@ -31,14 +31,13 @@ public class LessonTask extends PanacheEntityBase {
 
     private Integer multiplicity;
 
-    @ManyToOne(targetEntity = CourseLevel.class)
+    @ManyToOne(targetEntity = CourseLevel.class, cascade = CascadeType.REMOVE)
     @JsonIdentityInfo(
             generator = ObjectIdGenerators.PropertyGenerator.class,
             property = "courseLevelId")
     private CourseLevel courseLevel;
 
-    @DeepPlanningClone
-    @OneToMany(targetEntity = Lesson.class, fetch = FetchType.EAGER)
+    @OneToMany(targetEntity = Lesson.class, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "TASKNUMBER")
     private Set<Lesson> lessonsOfTaskList;
     //Not necessary
@@ -52,7 +51,6 @@ public class LessonTask extends PanacheEntityBase {
 
 
 
-
     //Couple the first two elements of lessonsOfTaskList
 
     public LessonTask(){
@@ -60,7 +58,7 @@ public class LessonTask extends PanacheEntityBase {
 
 
     public LessonTask(Integer taskNumber) {
-        this.taskNumber =taskNumber;
+        this.taskNumber = taskNumber;
         this.multiplicity = 0;
         this.lessonsOfTaskList = new HashSet<>();
     }
@@ -113,17 +111,6 @@ public class LessonTask extends PanacheEntityBase {
 
 
     /*GETTERS AND SETTERS */
-
-    public Set<StudentGroup> getStudentGroups() {
-        return studentGroups;
-    }
-    public Set<StudentGroup> getStudentGroupsFromPartition(Integer partitionNumber) {
-        if (this.courseLevel == null){
-            return studentGroups;
-        }
-        return courseLevel.getStudentGroups(partitionNumber, this);
-    }
-
     public void setStudentGroups(Set<StudentGroup> studentGroups){
         this.studentGroups = studentGroups;
     }
@@ -158,6 +145,9 @@ public class LessonTask extends PanacheEntityBase {
         updateCoupling();
     }
 
+    //**************************************************************$**
+    // GETTERS AND SETTERS -COURSELEVEL
+    //******************************************************************
     public CourseLevel getCourseLevel() {
         return courseLevel;
     }
@@ -166,7 +156,21 @@ public class LessonTask extends PanacheEntityBase {
         this.courseLevel = courseLevel;
     }
 
-    //Not necessary
+    public Set<StudentGroup> getStudentGroups() {
+        return studentGroups;
+    }
+
+    public Set<StudentGroup> getStudentGroupsFromPartition(Integer partitionNumber) {
+        if (this.courseLevel == null){
+            return studentGroups;
+        }
+        return courseLevel.getStudentGroups(this, partitionNumber);
+    }
+
+
+
+
+
     public Boolean isCoupled() {
         return coupled;
     }
@@ -179,7 +183,6 @@ public class LessonTask extends PanacheEntityBase {
         this.couplingNumbers.removeAll(couplingNumbers);
         this.coupled = false;
     }
-    //Not necessary
 
     public Integer getTaskNumber() {
         return taskNumber;

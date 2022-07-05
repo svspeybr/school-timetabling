@@ -5,6 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 
 import javax.persistence.*;
 import java.util.*;
@@ -19,14 +21,16 @@ public class StudentGroup extends PanacheEntityBase implements Comparable<Studen
 
     @ManyToMany(targetEntity = LessonTask.class,
             mappedBy = "studentGroups",
-            fetch = FetchType.EAGER)
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.REMOVE)
     @JsonIgnore
     private Set<LessonTask> lessonTasks = new HashSet<>();
 
     private Integer numberOfStudents;
 
     @ManyToMany(targetEntity = Teacher.class,
-            fetch = FetchType.EAGER)
+            fetch = FetchType.EAGER,
+            cascade = CascadeType.ALL)
     @JsonIgnore
     private Set<Teacher> classTeachers = new HashSet<>();
 
@@ -41,12 +45,17 @@ public class StudentGroup extends PanacheEntityBase implements Comparable<Studen
 
     public StudentGroup(String name, Integer numberOfStudents) {
         this.groupName =name;
-        this.numberOfStudents =numberOfStudents;
+        this.numberOfStudents = numberOfStudents;
     }
 
     public void addLessonTask(LessonTask lessonTask) {
         lessonTasks.add(lessonTask);
     }
+
+    public Boolean hasLessonTask() {
+        return ! this.lessonTasks.isEmpty();
+    }
+
     public void setNumberOfStudents(Integer numberOfStudents) {
         this.numberOfStudents = numberOfStudents;
     }
@@ -95,6 +104,11 @@ public class StudentGroup extends PanacheEntityBase implements Comparable<Studen
     @Override
     public int hashCode() {
         return Objects.hash(getGroupName());
+    }
+
+    @Override
+    public String toString() {
+        return groupName;
     }
 
     @Override

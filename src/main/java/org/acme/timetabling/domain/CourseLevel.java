@@ -2,25 +2,30 @@ package org.acme.timetabling.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import org.acme.timetabling.parser.XmlDomParser;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
+import org.optaplanner.core.api.domain.solution.cloner.DeepPlanningClone;
 
 import javax.persistence.*;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
 @Entity
 public class CourseLevel extends PanacheEntityBase {
 
-
+    //PERSISTENT FIELDS
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "COURSELEVELID")
     private Long courseLevelId;
 
-    @OneToMany(targetEntity = LessonTask.class, mappedBy = "courseLevel", fetch = FetchType.EAGER)
+    @OneToMany(targetEntity = LessonTask.class, mappedBy = "courseLevel", fetch = FetchType.EAGER, cascade = CascadeType.REMOVE)
     @JsonIgnore
     private List<LessonTask> lessonTaskList;
+
+
+    //TRANSIENT FIELDS
+    @Transient
+    private Map<Integer, Integer> indexTable;
 
     @Transient
     private int maxGroupSize;
@@ -29,68 +34,47 @@ public class CourseLevel extends PanacheEntityBase {
     @Transient
     private List<PartitionOfStudentGroups> partitionTable;
 
-/*    public static void main(String[] args) {
-        Function<String, List> giveList = XmlDomParser.main();
-        List<LessonTask> lessonTaskList = giveList.apply("ta");
-        List<LessonTask> historyTasks = lessonTaskList.stream().filter(lessonTask -> lessonTask.getSubject().equals("GE") &&
-                new ArrayList<>(lessonTask.getStudentGroups()).get(0).getYear().equals(5)).collect(Collectors.toList());
-        System.out.println(historyTasks.stream().map(lessonTask -> lessonTask.getStudentGroups().stream().map(
-                StudentGroup::getGroupName).collect(Collectors.toList())).collect(Collectors.toList()));
-        CourseLevel courseLevel = new CourseLevel(1L, new HashSet<>(historyTasks));
-        List<PartitionOfStudentGroups> partitionTab = courseLevel.getPartitionTable();
-        System.out.println(partitionTab.size());
-        for (PartitionOfStudentGroups partition: partitionTab){
-            System.out.println("***new partition***");
-            for (StudentGroups studentGroups: partition.getCopyOfContent()){
-                System.out.println("--studentGroups--");
-                studentGroups.getContent().stream().forEach(studentGroup -> System.out.println(studentGroup.getGroupName()));
-            }
-        }
-    }*/
 
+    // **************************************************
+    // CONSTRUCTORS
+    // **************************************************
     public CourseLevel(){
     }
-//NO SINGLE ADDITION --> HASHTABLE CALCULATED ONLY ONCE FOR EACH CourseLEVEL?!!
-/*    public CourseLevel(Long courseLevelId, LessonTask lessonTask, StudentGroup studentGroup) {
-        this.CourseLevelId = courseLevelId;
-        this.lessonTaskSet = new HashSet<>();
-        lessonTaskSet.add(lessonTask);
-        this.studentGroupSet = new HashSet<>();
-        this.studentGroupSet.add(studentGroup);
-        this.partitionTable = generateHashPartitionTableFrom();
-    }
-
-        public void addStudentGroup(StudentGroup studentGroup){
-        this.studentGroupSet.add(studentGroup);
-    }
-
-    public void addLessonTask(LessonTask lessonTask){
-        this.lessonTaskSet.add(lessonTask);
-    }
-    */
 
     public CourseLevel(List<LessonTask> lessonTaskList) {
         this.lessonTaskList = lessonTaskList;
         updateLessonTaskSet(lessonTaskList);
+        updateCourseLevel();
     }
 
+    // CONSTRUCTOR COMPONENT
     public void updateCourseLevel(){
-        this.studentGroupSet = extractStudentGroupsFrom(lessonTaskList);
-        this.maxGroupSize = Math.max(28, Collections.max(studentGroupSet, Comparator.comparing(StudentGroup::getNumberOfStudents))
+/*        //CLEAN START --> REMOVE COURSELEVEL FROM LESSONTASK!!
+        cleanLessonTaskSet(lessonTaskList);*/
+        this.studentGroupSet = extractStudentGroupsFrom(this.lessonTaskList); //link courseLevel to lessonTask
+        /*this.anchor = lessonTaskList.stream().flatMap(lessonTask -> lessonTask.getLessonsOfTaskList().stream()).max(Comparator.comparing(Lesson::getLessonId)).get();*/
+        this.indexTable = createIndexTable();
+        this.maxGroupSize = Math.max(28, Collections.max(this.studentGroupSet, Comparator.comparing(StudentGroup::getNumberOfStudents))
                 .getNumberOfStudents());
         this.partitionTable = generateHashPartitionTableFrom();
         this.partitionTable.add(0, generateCurrentPartition());
     }
 
-    public Set<StudentGroup> getStudentGroups(Integer partitionNumber, LessonTask lessonTask){
-        return this.partitionTable.get(partitionNumber)
-                .getStudentGroupsAt(this.lessonTaskList.indexOf(lessonTask))
+
+
+    //***********************************************************
+    //GETTERS
+    //***********************************************************
+
+    // GET STUDENTS!!!!!
+    public Set<StudentGroup> getStudentGroups(LessonTask lessonTask, Integer currentPartition){
+        return this.partitionTable.get(currentPartition)
+                .getStudentGroupsAt(this.indexTable.get(lessonTask.getTaskNumber()))
                 .getContent();
     }
-    private void updateLessonTaskSet(List<LessonTask> lessonTasks){
-        for (LessonTask lessonTask: lessonTasks){
-            lessonTask.setCourseLevel(this);
-        }
+
+    public List<LessonTask> getLessonTasks(){
+        return this.lessonTaskList;
     }
 
     public int getMaxGroupSize(){
@@ -101,16 +85,6 @@ public class CourseLevel extends PanacheEntityBase {
         return courseLevelId;
     }
 
-    public void updateLessonTasks(int i){
-        PartitionOfStudentGroups partition = partitionTable.get(i);
-        int index =0;
-        for (LessonTask lessonTask: lessonTaskList){
-            lessonTask.setStudentGroups(partition.getStudentGroupsAt(index).getContent());
-            index ++;
-        }
-    }
-
-
     public List<PartitionOfStudentGroups> getPartitionTable() {
         return partitionTable;
     }
@@ -119,24 +93,69 @@ public class CourseLevel extends PanacheEntityBase {
         return this.lessonTaskList.size();
     }
 
+
     public int numberOfPossiblePartitions(){ //number of related lessonTasks
         return this.partitionTable.size();
     }
 
     public Set<StudentGroup> getStudentGroupSet() {
-        return studentGroupSet;
+        return this.studentGroupSet;
     }
+
     public List<LessonTask> getLessonTaskList(){return this.lessonTaskList;}
 
+    //********************************************
+    //SETTERS
+    //*******************************************
+
+
+    //***************************************************************
+    // UPDATES
+    //***************************************************************
+
+    private void updateLessonTaskSet(List<LessonTask> lessonTasks){
+        for (LessonTask lessonTask: lessonTasks){
+            lessonTask.setCourseLevel(this);
+        }
+    }
+
+
+    public void updateLessonTasks(List<LessonTask> lessonTasks, int i){
+        PartitionOfStudentGroups partition = this.partitionTable.get(i);
+        for (LessonTask lessonTask: lessonTasks){
+            lessonTask.setStudentGroups(partition.getStudentGroupsAt(this.indexTable.get(lessonTask.getTaskNumber())).getContent());
+        }
+    }
+
+    private void cleanLessonTaskSet(List<LessonTask> lessonTaskList){
+        for(LessonTask lessonTask: lessonTaskList){
+            lessonTask.setCourseLevel(null);
+        }
+
+    }
+
+    //**************************************************
+    // ADVANCED - CONSTRUCTOR HELPERS
+    //**************************************************
+
+
+    private Map<Integer, Integer> createIndexTable(){ //FROM TASKNUMBER TO POSITION/INDEX
+        Map<Integer, Integer> indexTable = new HashMap<>(this.lessonTaskList.size());
+        for (int index = 0; index <this.lessonTaskList.size(); index ++){
+            indexTable.put(lessonTaskList.get(index).getTaskNumber(), index);
+        }
+        return  indexTable;
+    }
+
     private List<PartitionOfStudentGroups> generateHashPartitionTableFrom(){
-        List<StudentGroup> sortedStudentGroups = new ArrayList<>(studentGroupSet);
+        List<StudentGroup> sortedStudentGroups = new ArrayList<>(this.studentGroupSet);
         sortedStudentGroups.sort(Comparator.comparing(StudentGroup::getNumberOfStudents).reversed());
 
         List<PartitionOfStudentGroups> partitionTab = new ArrayList<>();
         //Start with current partition
         PartitionOfStudentGroups partition = new PartitionOfStudentGroups();
         for (int i = 0; i< getPartitionSize(); i++){ //Initialize each task with ONE student-group of the largest size
-            StudentGroups studentGroups= new StudentGroups();
+            StudentGroups studentGroups = new StudentGroups();
             studentGroups.addStudentGroup(sortedStudentGroups.remove(0));
             partition.addStudentGroups(studentGroups);
         }
@@ -162,6 +181,7 @@ public class CourseLevel extends PanacheEntityBase {
         return studentGroupSet;
     }
 
+    //GENERATE full list of all possible subdivision of students in the same courselevel
     private List<PartitionOfStudentGroups> generatorOfPartition(List<PartitionOfStudentGroups> partitionTable,
                                                                        List<StudentGroup> remainderList){
         if (remainderList.isEmpty()) {

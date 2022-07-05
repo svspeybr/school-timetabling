@@ -2,12 +2,12 @@ package org.acme.timetabling.domain;
 
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.optaplanner.core.api.domain.lookup.PlanningId;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
+import java.util.List;
 
 
 @Entity
@@ -39,6 +39,10 @@ public class Room extends PanacheEntityBase {
 
     public Long getRoomId() {
         return roomId;
+    }
+
+    public void setRoomId(Long roomId) {
+        this.roomId = roomId;
     }
 
     public String getName() {

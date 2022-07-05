@@ -117,19 +117,19 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
         return constraintFactory.from(LessonAssignment.class)
                 .join(ThemeCollection.class, filtering((lesa, theme)-> theme.getLessonIds().contains(lesa.getLessonId())))
                 .groupBy((lesa,theme)-> lesa.getTimeslot(), (lesa, theme)->theme, ConstraintCollectors.countDistinct((lesa, theme)->lesa))
-                .penalize("themeConflict", HardSoftScore.ONE_HARD, (ts, theme, count) -> positive(theme.copy(count) - theme.getMultiplicity(ts)));
+                .penalize("themeConflict", HardSoftScore.ONE_HARD, (ts, theme, count) -> positive(count - theme.getMultiplicity(ts)));
     }
 
 
     private Constraint classTeacherConflict(ConstraintFactory constraintFactory){
         return constraintFactory.from(StudentGroup.class)
                 .join(Teacher.class, filtering((st,te ) -> st.getClassTeachers().contains(te)))
-                .join(LessonAssignment.class, filtering((st, te, lesa)-> lesa.getDayOfWeek().equals("FRIDAY")
+                .join(LessonAssignment.class, filtering((st, te, lesa)-> lesa.getDayOfWeek().equals("FRIDAY") // TO DO: OPTION TO CHOOSE OTHER DAY
                                                                             && lesa.getTaughtBy().contains(te)
                                                                             && lesa.getStudentGroups().contains(st)
                                                                             ))
                 .groupBy(ConstraintCollectors.countDistinct((studentGroup, teacher,lessonAssignment ) -> studentGroup))
-                .join(constraintFactory.from(StudentGroup.class).groupBy(ConstraintCollectors.count()))
+                .join(constraintFactory.from(StudentGroup.class).filter(StudentGroup::hasLessonTask).groupBy(ConstraintCollectors.count()))
                 .penalize("classTeacher on Friday",
                         HardSoftScore.ONE_HARD, ((integer, integer2) -> integer2 - integer));
     }
@@ -247,7 +247,7 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 .penalize("exceedMaxLessonsOnSameDay conflict",
                         HardSoftScore.ONE_HARD,
                         (lessonTask, lessonAssignments) -> {
-                            Integer exceedNumber = 0;
+                            int exceedNumber = 0;
                             // To be taken from teacher/preferences
                             int allowedNumberOfDays = extractAllowedNumberOfDays(lessonTask);
                             List<List<Integer>> numberOfLessons = getTimeslotsPerDay(lessonAssignments);
@@ -258,7 +258,7 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                                 timeslotIndexOnDay = numberOfLessons.get(dayIndex);
                                 exceedNumber += 6 * Math.abs(blockSize - timeslotIndexOnDay.size());
                                 lessonsLeft -= blockSize;
-                                exceedNumber += numberOfGaps(timeslotIndexOnDay);
+                                exceedNumber += numberOfGaps(timeslotIndexOnDay); // lessons need to form a block = need to follow each other  directly up
                                 dayIndex += 1;
                             }
                             // TO DO: CHECK WHEN 5 (= allowedNumberOfdays) BLOCKS ARE CHOSEN, NO LESSONS ARE LEFT
@@ -267,7 +267,7 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                                 int daysLeftToDivide = (allowedNumberOfDays - lessonTask.getCouplingNumbers().size());
                                 int remainderOfDays = lessonsLeft % daysLeftToDivide;
 
-                                Integer mean = (int) Math.floor((float) lessonsLeft / daysLeftToDivide);
+                                int mean = (int) Math.floor((float) lessonsLeft / daysLeftToDivide);
 
                                 for (int i = dayIndex; i < 5; i++) {
 
@@ -292,10 +292,15 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 .join(LessonAssignment.class,
                         Joiners.lessThan(LessonAssignment::getLessonId),
                         Joiners.equal(LessonAssignment::getTimeslot))
-                .filter(((lessonAssignment, lessonAssignment2) -> {
-                    HashSet<Teacher> intersection = new HashSet<>(lessonAssignment2.getTaughtBy());
-                    intersection.retainAll(lessonAssignment.getTaughtBy());
-                    return ! intersection.isEmpty();}))
+                .filter(((lessonAssignment1, lessonAssignment2) -> {
+                    Set<Teacher> teachers2 = lessonAssignment2.getTaughtBy();
+                    Set<Teacher> teachers1 = lessonAssignment1.getTaughtBy();
+                    for (Teacher teacher: teachers1){
+                        if (teachers2.contains(teacher)){
+                            return true;
+                        }
+                    }
+                    return false;}))
                 .penalize("Teacher conflict", HardSoftScore.ONE_HARD);
     }
 
@@ -304,11 +309,12 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
                 .join(LessonAssignment.class,
                         Joiners.equal(LessonAssignment::getTimeslot),
                         Joiners.lessThan(LessonAssignment::getLessonId)
-                ).filter((lessonAssignment, lessonAssignment2) -> {
-                    HashSet<StudentGroup> intersection = new HashSet<>(lessonAssignment2.getStudentGroups());
-                    intersection.retainAll(lessonAssignment.getStudentGroups());
-                    return ! intersection.isEmpty();})
-                .penalize("Student group conflict", HardSoftScore.ONE_HARD);
+                )
+                .penalize("Student group conflict", HardSoftScore.ONE_HARD,
+                        (lessonAssignment, lessonAssignment2) -> {
+                            HashSet<StudentGroup> intersection = new HashSet<>(lessonAssignment2.getStudentGroups());
+                            intersection.retainAll(lessonAssignment.getStudentGroups());
+                            return intersection.size();});
     }
 
 
@@ -377,7 +383,7 @@ public class TimeTableConstraintProvider implements ConstraintProvider {
     private List<List<Integer>> getTimeslotsPerDay(List<LessonAssignment> lesList) {
         List<List<Integer>> numberOfLessons = new ArrayList<>(5);
         for (int i =0; i< 5; i++){
-            //Max 8 -> 10 lessonslosts? on same day
+            //Max 8 -> 10 lessonslosts? on same day TO DO: defaultsettings in constraintProvider !?
             numberOfLessons.add(new ArrayList<>(10));
         }
         for (LessonAssignment lessonAssignment: lesList) {

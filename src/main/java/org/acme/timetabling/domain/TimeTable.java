@@ -9,8 +9,8 @@ import org.optaplanner.core.api.domain.valuerange.ValueRangeProvider;
 import org.optaplanner.core.api.score.buildin.hardsoft.HardSoftScore;
 import org.optaplanner.core.api.solver.SolverStatus;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @PlanningSolution
 @XStreamAlias("TimeTable")
@@ -68,7 +68,8 @@ public class TimeTable {
     public TimeTable() { // No-arg constructor required for OptaPlanner
     }
 
-    public TimeTable(List<Timeslot> timeslotList,
+    public TimeTable(Map<Long, Integer> studentGroupConfiguration,
+                     List<Timeslot> timeslotList,
                      List<Room> roomList,
                      List<Lesson> lessonList,
                      List<LessonTask> lessonTaskList,
@@ -78,12 +79,13 @@ public class TimeTable {
                      List<Preference> preferenceList,
                      List<SubjectCollection> subjectCollectionList,
                      List<ThemeCollection> themeCollectionList) {
+        lessonTaskList.stream().map(LessonTask::getCourseLevel).filter(Objects::nonNull).collect(Collectors.toSet()).forEach(CourseLevel::updateCourseLevel);
         this.timeslotList = timeslotList;
         this.roomList = roomList;
         this.lessonList = lessonList;
         this.lessonTaskList = lessonTaskList;
         this.courseLevelList = courseLevelList;
-        this.lessonAssignmentList = generateAssignmentFromLessonTask(lessonTaskList);
+        this.lessonAssignmentList = generateAssignmentFromLessonTask(studentGroupConfiguration, lessonTaskList);
         this.studentGroupList = studentGroupList;
         this.teacherList = teacherList;
         this.preferenceList = preferenceList;
@@ -158,14 +160,25 @@ public class TimeTable {
         this.solverStatus = solverStatus;
     }
 
-    // ADVANCED (?)
+    // ADVANCED
 
-    private List<LessonAssignment> generateAssignmentFromLessonTask(List<LessonTask> lessonTaskList){
+    private List<LessonAssignment> generateAssignmentFromLessonTask(Map<Long, Integer> studentGroupConfiguration, List<LessonTask> lessonTaskList){
+
+        boolean emptyConfiguration = studentGroupConfiguration == null;
         List<LessonAssignment> lessonAssignmentList = new ArrayList<>();
+
         for (LessonTask lessonTask:lessonTaskList){
+            Integer partitionNumber = 0;
+            if (! emptyConfiguration && lessonTask.getCourseLevel() != null){
+                partitionNumber = studentGroupConfiguration.get(lessonTask.getCourseLevel().getCourseLevelId());
+                System.out.println(lessonTask.getCourseLevel().numberOfPossiblePartitions());
+                System.out.println("pn" + partitionNumber);
+            }
+            Set<StudentGroup> studentGroups = lessonTask.getStudentGroupsFromPartition(partitionNumber);
                 for (Lesson lesson: lessonTask.getLessonsOfTaskList()) {
                     LessonAssignment lessonAssignment = new LessonAssignment(lesson.getLessonId(),
                             lessonTask,
+                            studentGroups,
                             lesson.getSubject(),
                             lesson.getRoom(),
                             lesson.getTimeslot(),

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.thoughtworks.xstream.annotations.XStreamAlias;
 import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
 import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.FetchMode;
 import org.optaplanner.core.api.domain.entity.PlanningEntity;
 import org.optaplanner.core.api.domain.entity.PlanningPin;
 import org.optaplanner.core.api.domain.variable.PlanningVariable;
@@ -22,8 +23,8 @@ import java.util.stream.Collectors;
 public class Lesson extends PanacheEntityBase{
     /* FIELDS*/
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
     @Column(name = "LESSONID")
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long lessonId;
 
     private boolean pinned = false;
@@ -33,18 +34,19 @@ public class Lesson extends PanacheEntityBase{
     @JoinColumn(name = "LESSON_TIMESLOTID")
     private Timeslot timeslot;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.MERGE)
     private Room room;
 
     @Column(name = "TASKNUMBER")
     private Integer taskNumber;
 
-    @ManyToOne(targetEntity = LessonTask.class)
+    @ManyToOne(targetEntity = LessonTask.class, cascade = CascadeType.ALL)
     @JsonIdentityInfo(
             generator = ObjectIdGenerators.PropertyGenerator.class,
             property = "taskNumber")
     @JoinColumn(name = "TASKNUMBER", insertable = false, updatable = false)
     private LessonTask lessonTask;
+
 
     /*CONSTRUCTORS*/
 
@@ -78,6 +80,8 @@ public class Lesson extends PanacheEntityBase{
     public Long getLessonId() {
         return lessonId;
     }
+    //DANGER: USE ONLY FOR COPYING (PRIMARY KEY)
+    public void setLessonId(Long id){ this.lessonId = id;}
 
     public Timeslot getTimeslot() {
         return timeslot;
@@ -120,7 +124,6 @@ public class Lesson extends PanacheEntityBase{
         this.room = room;
     }
 
-
     public Boolean isConsecutiveTo(Lesson lesson) {
         return this.timeslot.isConsecutiveTo(lesson.getTimeslot());
     }
@@ -139,6 +142,8 @@ public class Lesson extends PanacheEntityBase{
         return (nlessons < 3 & this.lessonTask.getMultiplicity() > 5) ||
                 nlessons < 2 ;
     }
+
+
 
 }
 

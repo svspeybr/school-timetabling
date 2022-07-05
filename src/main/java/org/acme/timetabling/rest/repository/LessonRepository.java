@@ -4,11 +4,7 @@ import org.acme.timetabling.domain.LessonAssignment;
 import org.acme.timetabling.domain.LessonTask;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.persistence.NoResultException;
 import javax.persistence.Query;
-import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 @ApplicationScoped
